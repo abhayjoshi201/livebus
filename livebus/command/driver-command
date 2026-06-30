@@ -1,0 +1,25 @@
+curl -s -c driver_cookies.txt -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "ramu", "password": "securepassword123"}' 
+
+
+curl -i -X POST http://localhost:8080/api/driver/trips/start \
+     -H "Content-Type: application/json" \
+     -b driver_cookies.txt \
+     -d '{
+           "routeId": "YOUR_ROUTE_ID", 
+           "busId": "YOUR_BUS_ID"
+         }'
+
+
+curl -i -X PUT http://localhost:8080/api/driver/trips/location \
+     -H "Content-Type: application/json" \
+     -b driver_cookies.txt \
+     -d '{
+           "latitude": 19.0760, 
+           "longitude": 72.8777
+         }'
+
+
+curl -i -X POST http://localhost:8080/api/driver/trips/end \
+     -b driver_cookies.txt

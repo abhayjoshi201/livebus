@@ -1,0 +1,3 @@
+curl -i -X GET http://localhost:8080/api/passenger/routes/fd4d4858-b281-4d1b-a511-bcc189de2398/live
+
+curl -s -X GET http://localhost:8080/api/passenger/routes/{routeId}/stops/{stopId}/eta
