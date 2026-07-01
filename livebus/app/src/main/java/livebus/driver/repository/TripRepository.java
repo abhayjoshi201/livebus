@@ -23,13 +23,15 @@ public interface TripRepository extends JpaRepository<Trip, UUID> {
             ST_Y(CAST(t.current_location AS geometry)) AS "latitude", 
             ST_X(CAST(t.current_location AS geometry)) AS "longitude", 
             ST_DistanceSphere(CAST(t.current_location AS geometry), CAST(s.location AS geometry)) AS "distanceMeters" 
-        FROM trip t 
-        JOIN bus b ON t.bus_id = b.id 
-        JOIN stop s ON s.id = CAST(:stopId AS uuid) 
+        FROM trips t 
+        JOIN buses b ON t.bus_id = b.id 
+        JOIN stops s ON s.id = CAST(:stopId AS uuid) 
         WHERE t.route_id = CAST(:routeId AS uuid) 
           AND t.status = 'IN_TRANSIT' 
           AND t.current_location IS NOT NULL
+          AND t.next_stop_sequence <= s.stop_sequence
     """, nativeQuery = true)
+    
     List<TripDistanceProjection> findActiveTripsWithDistance(
         @Param("routeId") UUID routeId, 
         @Param("stopId") UUID stopId

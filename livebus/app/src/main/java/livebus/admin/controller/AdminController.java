@@ -10,10 +10,12 @@ import livebus.admin.dto.BusRequest;
 import livebus.admin.service.AdminService;
 import livebus.admin.dto.DriverRequest;
 import livebus.security.model.User;
+import livebus.admin.dto.StopResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -55,8 +57,28 @@ public class AdminController {
     }
 
     @GetMapping("/routes/{routeId}/stops")
-    public ResponseEntity<List<Stop>> getStopsForRoute(@PathVariable UUID routeId) {
-        return ResponseEntity.ok(adminService.getStopsByRoute(routeId));
+    public ResponseEntity<List<StopResponse>> getStopsForRoute(@PathVariable UUID routeId) {
+        List<Stop> stops = adminService.getStopsByRoute(routeId);
+        
+        List<StopResponse> safeResponse = stops.stream().map(stop -> {
+            double lat = 0.0;
+            double lon = 0.0;
+            
+            if (stop.getLocation() != null) {
+                lat = stop.getLocation().getY();
+                lon = stop.getLocation().getX();
+            }
+            
+            return new StopResponse(
+                    stop.getId(), 
+                    stop.getStopName(), 
+                    lat, 
+                    lon, 
+                    stop.getStopSequence()
+            );
+        }).collect(Collectors.toList());
+        
+        return ResponseEntity.ok(safeResponse);
     }
 
     @GetMapping("/buses")

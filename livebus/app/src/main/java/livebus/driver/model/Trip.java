@@ -44,6 +44,9 @@ public class Trip {
 
     private LocalDateTime endTime;
 
+    @Column(name = "next_stop_sequence", nullable = false)
+    private Integer nextStopSequence = 1;
+
     public Trip() {}
 
    
@@ -70,4 +73,9 @@ public class Trip {
 
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+
+    public Integer getNextStopSequence() { return nextStopSequence; }
+    public void setNextStopSequence(Integer nextStopSequence) { this.nextStopSequence = nextStopSequence; }
+        
+    
 }

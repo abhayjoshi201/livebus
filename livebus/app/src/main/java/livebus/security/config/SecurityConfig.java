@@ -48,6 +48,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/passenger/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                .requestMatchers("/ws-livebus/**").permitAll()
+                .requestMatchers("/livebus-tracker.html").permitAll()
                 
                 .anyRequest().authenticated() 
             );
