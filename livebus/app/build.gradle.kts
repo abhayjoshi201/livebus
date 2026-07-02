@@ -1,7 +1,7 @@
 plugins {
     java
     // Adds Spring Boot support (creates runnable fat JARs, bootRun task, etc.)
-    id("org.springframework.boot") version "3.2.4"
+    id("org.springframework.boot") version "3.4.1"
     
 }
 
@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.2.4"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:3.4.1"))
 
     // 1. Core Web (REST APIs, embedded Tomcat)
     implementation("org.springframework.boot:spring-boot-starter-web")
