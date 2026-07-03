@@ -1,7 +1,7 @@
 // driver login
 curl -s -c driver_cookies.txt -X POST http://localhost:8080/api/auth/login \
      -H "Content-Type: application/json" \
-     -d '{"username": "ramu", "password": "securepassword123"}' 
+     -d '{"username": "ravi", "password": "123"}' 
 
 
 // start trip

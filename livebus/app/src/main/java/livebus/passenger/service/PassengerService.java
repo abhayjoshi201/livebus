@@ -11,6 +11,10 @@ import livebus.passenger.dto.RouteResponse;
 import livebus.passenger.dto.StopResponse;
 import livebus.passenger.dto.EtaResponse;
 import livebus.driver.repository.TripDistanceProjection;
+import livebus.passenger.dto.NearestStopProjection;
+import livebus.passenger.repository.PassengerStopQueryRepository;
+import livebus.driver.repository.TripRepository; 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -27,11 +31,16 @@ public class PassengerService {
     private final RouteRepository routeRepository;
     private final StopRepository stopRepository;
     private final TripRepository tripRepository;
+    private final PassengerStopQueryRepository passengerStopQueryRepository;
+  
 
-    public PassengerService(RouteRepository routeRepository, StopRepository stopRepository, TripRepository tripRepository) {
+    public PassengerService(RouteRepository routeRepository, StopRepository stopRepository, TripRepository tripRepository,
+                            PassengerStopQueryRepository passengerStopQueryRepository
+     ) {
         this.routeRepository = routeRepository;
         this.stopRepository = stopRepository;
         this.tripRepository = tripRepository;
+        this.passengerStopQueryRepository = passengerStopQueryRepository;
     }
 
     public List<Route> getAllRoutes() {
@@ -126,5 +135,10 @@ public class PassengerService {
                     p.getLongitude()
             );
         }).collect(Collectors.toList());
+    }
+
+
+    public List<NearestStopProjection> getNearestStops(double latitude, double longitude) {
+        return passengerStopQueryRepository.findNearestStops(latitude, longitude);
     }
 }
