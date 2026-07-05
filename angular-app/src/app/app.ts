@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, signal, computed, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -42,7 +42,7 @@ export interface QueueItem {
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit, OnDestroy {
+export class App implements AfterViewInit, OnDestroy {
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
 
   // --- ALL-INDIA TRANSIT DATABASE WITH CURVED ROADS ---
@@ -145,7 +145,7 @@ export class App implements OnInit, OnDestroy {
   private busMarkers: any[] = [];
   private simInterval: any = null;
 
-  ngOnInit() {
+  ngAfterViewInit() {
     this.initMap();
   }
 
