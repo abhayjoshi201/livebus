@@ -567,7 +567,7 @@
             <!-- VIEW 1: HOME OVERVIEW (Default) -->
             <div id="homeView" class="panel-view view-active">
                 <!-- Search Bar -->
-                <div class="search-box" onclick="focusSearch()">
+                <div class="search-box">
                     <span>🔍</span>
                     <input type="text" class="search-input" id="searchInput" placeholder="Search routes, stops, or bus numbers..." oninput="filterRoutes(this.value)">
                 </div>
@@ -861,15 +861,10 @@
         }
 
         function focusSearch() {
-            const query = prompt("🔍 Search transit routes or stops across " + transitHubs[currentCity].name + ":\n(e.g., '216W', 'Airport', 'Gachibowli')");
-            if (query) {
-                const hub = transitHubs[currentCity];
-                const found = hub.routes.find(r => r.name.toLowerCase().includes(query.toLowerCase()) || r.dest.toLowerCase().includes(query.toLowerCase()) || r.dir.toLowerCase().includes(query.toLowerCase()));
-                if (found) {
-                    selectRoute(found.id);
-                } else {
-                    alert("No matching routes found in " + hub.name + " for '" + query + "'. Try selecting a route from the suggested cards!");
-                }
+            const input = document.getElementById('searchInput');
+            if (input) {
+                input.focus();
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
