@@ -163,6 +163,13 @@ export class App implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     L.control.zoom({ position: 'topright' }).addTo(this.map);
+
+    setTimeout(() => {
+      if (this.map) {
+        this.map.invalidateSize();
+        this.startSimulation();
+      }
+    }, 250);
   }
 
   onCityChange(event: any) {
