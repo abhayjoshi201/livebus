@@ -56,6 +56,26 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
         connectStomp()
     }
 
+    fun startSimulating() {
+        viewModelScope.launch {
+            var step = 0
+            while (true) {
+                kotlinx.coroutines.delay(2500)
+                val current = _busLocation.value ?: LatLng(37.7749, -122.4194)
+                val target = _userStopLocation.value
+                val newLat = current.latitude + (target.latitude - current.latitude) * 0.05
+                val newLon = current.longitude + (target.longitude - current.longitude) * 0.05
+                _busLocation.value = LatLng(newLat, newLon)
+
+                step++
+                if (step % 2 == 0 && _eta.value > 1) {
+                    _eta.value -= 1
+                    _distance.value = kotlin.math.max(0.1, kotlin.math.round((_distance.value - 0.1) * 10) / 10.0)
+                }
+            }
+        }
+    }
+
     private fun connectStomp() {
         stompClient.connect()
 

@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -14,6 +15,10 @@ fun LiveTrackingScreen(
     onBackClick: () -> Unit = {},
     viewModel: LiveTrackingViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.startSimulating()
+    }
+
     val busLocation by viewModel.busLocation.collectAsState()
     val userStopLocation by viewModel.userStopLocation.collectAsState()
     val routeDetails by viewModel.routeDetails.collectAsState()

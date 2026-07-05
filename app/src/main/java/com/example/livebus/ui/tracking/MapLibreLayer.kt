@@ -54,14 +54,41 @@ fun MapLibreLayer(
     }
 
     var mapboxMap by remember { mutableStateOf<MapboxMap?>(null) }
+    var isStyleLoaded by remember { mutableStateOf(false) }
     var busMarker by remember { mutableStateOf<Marker?>(null) }
     var stopMarker by remember { mutableStateOf<Marker?>(null) }
+    var routePolyline by remember { mutableStateOf<com.mapbox.mapboxsdk.annotations.Polyline?>(null) }
 
-    // MapTiler styles
-    val mapStyleUrl = if (isDarkTheme) {
-        "https://api.maptiler.com/maps/darkmatter/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-    } else {
-        "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+    // CartoDB public XYZ tiles (no API keys required)
+    val styleJson = remember(isDarkTheme) {
+        val themePrefix = if (isDarkTheme) "dark_all" else "light_all"
+        """
+        {
+          "version": 8,
+          "sources": {
+            "carto-raster": {
+              "type": "raster",
+              "tiles": [
+                "https://a.basemaps.cartocdn.com/$themePrefix/{z}/{x}/{y}.png",
+                "https://b.basemaps.cartocdn.com/$themePrefix/{z}/{x}/{y}.png",
+                "https://c.basemaps.cartocdn.com/$themePrefix/{z}/{x}/{y}.png",
+                "https://d.basemaps.cartocdn.com/$themePrefix/{z}/{x}/{y}.png"
+              ],
+              "tileSize": 256,
+              "attribution": "© OpenStreetMap © CARTO"
+            }
+          },
+          "layers": [
+            {
+              "id": "carto-raster-layer",
+              "type": "raster",
+              "source": "carto-raster",
+              "minzoom": 0,
+              "maxzoom": 22
+            }
+          ]
+        }
+        """.trimIndent()
     }
 
     // Lifecycle observer for MapView
@@ -93,18 +120,19 @@ fun MapLibreLayer(
     }
 
     // Setup map once created
-    LaunchedEffect(mapView, mapStyleUrl) {
+    LaunchedEffect(mapView, styleJson) {
         mapView?.getMapAsync { map ->
             mapboxMap = map
-            map.setStyle(Style.Builder().fromUri(mapStyleUrl)) { style ->
-                // Style loaded
+            map.setStyle(Style.Builder().fromJson(styleJson)) { style ->
+                isStyleLoaded = true
             }
         }
     }
 
     // Update markers and animate bus movement
-    LaunchedEffect(mapboxMap, busLocation, userStopLocation) {
+    LaunchedEffect(mapboxMap, isStyleLoaded, busLocation, userStopLocation) {
         val map = mapboxMap ?: return@LaunchedEffect
+        if (!isStyleLoaded) return@LaunchedEffect
 
         // Setup stop marker
         val currentStopMarker = stopMarker
@@ -125,6 +153,20 @@ fun MapLibreLayer(
         // Setup bus marker & animation
         if (busLocation != null) {
             val newPos = MapboxLatLng(busLocation.latitude, busLocation.longitude)
+            val stopPos = MapboxLatLng(userStopLocation.latitude, userStopLocation.longitude)
+
+            // Update route polyline
+            val currentPolyline = routePolyline
+            if (currentPolyline == null) {
+                val polyOptions = com.mapbox.mapboxsdk.annotations.PolylineOptions()
+                    .add(newPos, stopPos)
+                    .color(android.graphics.Color.parseColor("#2E7D32"))
+                    .width(7f)
+                routePolyline = map.addPolyline(polyOptions)
+            } else {
+                currentPolyline.points = listOf(newPos, stopPos)
+            }
+
             val currentBusMarker = busMarker
             if (currentBusMarker == null) {
                 val busIconBitmap = getBitmapFromVectorDrawable(context, R.drawable.ic_bus)
@@ -136,7 +178,16 @@ fun MapLibreLayer(
                     options.icon(busIcon)
                 }
                 busMarker = map.addMarker(options)
-                map.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos, 14.0))
+
+                try {
+                    val bounds = com.mapbox.mapboxsdk.geometry.LatLngBounds.Builder()
+                        .include(newPos)
+                        .include(stopPos)
+                        .build()
+                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100, 150, 100, 850))
+                } catch (e: Exception) {
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(newPos, 14.0))
+                }
             } else {
                 val startPos = currentBusMarker.position
                 animateMarker(currentBusMarker, startPos, newPos)
