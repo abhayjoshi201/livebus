@@ -163,9 +163,19 @@ fun LiveBusAppNavigation(
 
             composable("trip_end") {
                 TripEndScreen(
+                    route = selectedRouteName,
+                    busId = selectedBusId,
+                    txCount = txCount,
                     onReturnHome = {
                         navController.navigate("route_selection") {
                             popUpTo("route_selection") { inclusive = true }
+                        }
+                    },
+                    onViewLogs = { navController.navigate("incident_log") },
+                    onSwitchToPassenger = onSwitchToPassenger,
+                    onLogout = {
+                        navController.navigate("login") {
+                            popUpTo("login") { inclusive = true }
                         }
                     }
                 )
