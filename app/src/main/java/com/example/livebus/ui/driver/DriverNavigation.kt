@@ -1,4 +1,4 @@
-package com.example.livebus
+package com.example.livebus.ui.driver
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState

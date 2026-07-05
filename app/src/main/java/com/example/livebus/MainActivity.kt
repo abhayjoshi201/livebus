@@ -17,7 +17,8 @@ import com.example.livebus.ui.settings.SettingsScreen
 import com.example.livebus.ui.settings.SettingsViewModel
 import com.example.livebus.ui.settings.ThemeOption
 import com.example.livebus.ui.tickets.TicketsScreen
-import com.example.livebus.ui.theme.HomeScreen
+import com.example.livebus.ui.home.HomeScreen
+import com.example.livebus.ui.driver.LiveBusAppNavigation
 import com.example.livebus.ui.theme.LiveBusTheme
 import com.example.livebus.ui.tracking.LiveTrackingScreen
 import dagger.hilt.android.AndroidEntryPoint

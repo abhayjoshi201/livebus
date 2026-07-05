@@ -1,5 +1,6 @@
-package com.example.livebus.ui.theme
+package com.example.livebus.ui.home
 
+import com.example.livebus.ui.theme.*
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText

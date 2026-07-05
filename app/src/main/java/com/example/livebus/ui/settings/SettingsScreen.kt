@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.livebus.ui.theme.BottomNavigationBar
+import com.example.livebus.ui.common.BottomNavigationBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
