@@ -19,6 +19,7 @@ fun LiveTrackingScreen(
         viewModel.startSimulating()
     }
 
+    val activeBuses by viewModel.activeBuses.collectAsState()
     val busLocation by viewModel.busLocation.collectAsState()
     val userStopLocation by viewModel.userStopLocation.collectAsState()
     val routeWaypoints by viewModel.routeWaypoints.collectAsState()
@@ -37,6 +38,7 @@ fun LiveTrackingScreen(
             userStopLocation = userStopLocation,
             routeWaypoints = routeWaypoints,
             locationName = routeDetails.direction,
+            activeBuses = activeBuses,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -52,6 +54,7 @@ fun LiveTrackingScreen(
             distance = distance,
             status = status,
             isAlertActive = isAlertActive,
+            activeBuses = activeBuses,
             onAlertClick = { viewModel.toggleAlert() },
             modifier = Modifier.align(Alignment.BottomCenter)
         )

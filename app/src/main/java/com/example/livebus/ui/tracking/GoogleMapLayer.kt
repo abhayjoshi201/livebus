@@ -16,6 +16,7 @@ fun GoogleMapLayer(
     userStopLocation: LatLng,
     routeWaypoints: List<LatLng> = emptyList(),
     locationName: String = "Hyderabad IT Corridor",
+    activeBuses: List<ActiveBus> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
@@ -35,17 +36,20 @@ fun GoogleMapLayer(
     }
 
     // Automatically adjust camera bounds to frame street corridor and vehicles
-    LaunchedEffect(busLatLng, stopLatLng, waypointLatLngs) {
-        if (busLatLng != null) {
+    LaunchedEffect(busLatLng, stopLatLng, waypointLatLngs, activeBuses) {
+        if (activeBuses.isNotEmpty() || busLatLng != null) {
             try {
                 val boundsBuilder = LatLngBounds.builder()
-                boundsBuilder.include(busLatLng)
                 boundsBuilder.include(stopLatLng)
+                activeBuses.forEach {
+                    boundsBuilder.include(com.google.android.gms.maps.model.LatLng(it.location.latitude, it.location.longitude))
+                }
+                if (busLatLng != null) boundsBuilder.include(busLatLng)
                 waypointLatLngs.forEach { boundsBuilder.include(it) }
                 val bounds = boundsBuilder.build()
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 150))
             } catch (e: Exception) {
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(busLatLng, 14f))
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(busLatLng ?: stopLatLng, 14f))
             }
         } else {
             cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(stopLatLng, 14f))
@@ -76,17 +80,37 @@ fun GoogleMapLayer(
         // User Location Marker
         Marker(
             state = MarkerState(position = stopLatLng),
-            title = if (busLatLng != null) "User Stop: $locationName" else "Your Location: $locationName",
-            snippet = if (busLatLng != null) "Assigned Boarding Location" else "Select a route from Plan Trip to view buses",
+            title = if (activeBuses.isNotEmpty() || busLatLng != null) "User Stop: $locationName" else "Your Location: $locationName",
+            snippet = if (activeBuses.isNotEmpty() || busLatLng != null) "Assigned Boarding Location" else "Select a route from Plan Trip to view buses",
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
         )
 
-        // Live Bus Marker & Road Polyline Corridor
-        if (busLatLng != null) {
+        // Live Bus Markers & Road Polyline Corridor
+        if (activeBuses.isNotEmpty()) {
+            activeBuses.forEachIndexed { index, bus ->
+                val bLatLng = remember(bus.location) {
+                    com.google.android.gms.maps.model.LatLng(bus.location.latitude, bus.location.longitude)
+                }
+                Marker(
+                    state = MarkerState(position = bLatLng),
+                    title = if (index == 0) "🟢 Next Bus #${bus.busId}" else "🟡 Following #${bus.busId}",
+                    snippet = "ETA: ${bus.etaMinutes} min • ${bus.status.name.replace("_", " ")}",
+                    icon = BitmapDescriptorFactory.defaultMarker(
+                        if (index == 0) BitmapDescriptorFactory.HUE_GREEN else BitmapDescriptorFactory.HUE_YELLOW
+                    )
+                )
+            }
+
+            Polyline(
+                points = if (waypointLatLngs.isNotEmpty()) waypointLatLngs else listOf(com.google.android.gms.maps.model.LatLng(activeBuses[0].location.latitude, activeBuses[0].location.longitude), stopLatLng),
+                color = Color(0xFF2E7D32),
+                width = 16f
+            )
+        } else if (busLatLng != null) {
             Marker(
                 state = MarkerState(position = busLatLng),
                 title = "Live Bus #TG-09-Z-4052",
-                snippet = "Route 216W • Active Telemetry",
+                snippet = "Active Telemetry",
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
             )
 

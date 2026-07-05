@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import com.example.livebus.ui.theme.statusColor
 
 @Composable
@@ -32,6 +34,7 @@ fun BottomSheetLayer(
     status: BusStatus,
     isAlertActive: Boolean,
     onAlertClick: () -> Unit,
+    activeBuses: List<ActiveBus> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val statusColor = status.statusColor()
@@ -207,6 +210,44 @@ fun BottomSheetLayer(
                             fontWeight = FontWeight.SemiBold,
                             color = statusColor
                         )
+                    }
+                }
+
+                if (activeBuses.size > 1) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                    ) {
+                        Text(
+                            text = "UPCOMING ARRIVALS QUEUE (${activeBuses.size} BUSES IN SERVICE)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(activeBuses.size) { index ->
+                                val bus = activeBuses[index]
+                                val isPrimary = index == 0
+                                val chipBg = if (isPrimary) statusColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+                                val chipColor = if (isPrimary) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(50))
+                                        .background(chipBg)
+                                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "${if (isPrimary) "🟢" else "🟡"} #${bus.busId} • ${bus.etaMinutes} min",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = chipColor
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
