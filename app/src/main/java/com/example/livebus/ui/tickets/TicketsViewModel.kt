@@ -19,7 +19,7 @@ import javax.inject.Inject
 data class Ticket(
     val id: String = UUID.randomUUID().toString(),
     val type: String, // e.g. "SINGLE JOURNEY", "DAILY CITY PASS"
-    val routeOrZone: String, // e.g. "Route 101-A (Standard Fare)"
+    val routeOrZone: String, // e.g. "Route 216W (TGSRTC Express Fare)"
     val expirationTimestamp: Long, // epoch millis
     val isValid: Boolean = true
 )
@@ -76,7 +76,7 @@ class TicketsViewModel @Inject constructor() : ViewModel() {
         listOf(
             Ticket(
                 type = "SINGLE JOURNEY",
-                routeOrZone = "Route 101-A (Standard Fare)",
+                routeOrZone = "Route 216W (TGSRTC Express Fare)",
                 expirationTimestamp = System.currentTimeMillis() + 45 * 60 * 1000L, // 45 mins from now
                 isValid = true
             )

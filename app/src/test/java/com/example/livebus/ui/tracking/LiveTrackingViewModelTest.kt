@@ -36,8 +36,8 @@ class LiveTrackingViewModelTest {
     fun parseAndApplyMessage_updatesStateCorrectly() {
         val jsonPayload = """
             {
-                "latitude": 37.8000,
-                "longitude": -122.4000,
+                "latitude": 17.4000,
+                "longitude": 78.4000,
                 "eta": 12,
                 "distance": 3.5,
                 "status": "DELAYED"
@@ -46,8 +46,8 @@ class LiveTrackingViewModelTest {
 
         viewModel.parseAndApplyMessage(jsonPayload)
 
-        assertEquals(37.8000, viewModel.busLocation.value?.latitude ?: 0.0, 0.0001)
-        assertEquals(-122.4000, viewModel.busLocation.value?.longitude ?: 0.0, 0.0001)
+        assertEquals(17.4000, viewModel.busLocation.value?.latitude ?: 0.0, 0.0001)
+        assertEquals(78.4000, viewModel.busLocation.value?.longitude ?: 0.0, 0.0001)
         assertEquals(12, viewModel.eta.value)
         assertEquals(3.5, viewModel.distance.value, 0.001)
         assertEquals(BusStatus.DELAYED, viewModel.busStatus.value)

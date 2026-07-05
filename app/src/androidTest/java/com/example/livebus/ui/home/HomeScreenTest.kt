@@ -33,11 +33,11 @@ class HomeScreenTest {
         composeTestRule.setContent {
             HomeScreen()
         }
-        composeTestRule.onNodeWithText("Favorite Routes").assertExists()
-        composeTestRule.onAllNodesWithText("ROUTE 101-A").assertCountEquals(2)
-        composeTestRule.onAllNodesWithText("City Center").assertCountEquals(2)
-        composeTestRule.onNodeWithText("ROUTE 202-B").assertExists()
-        composeTestRule.onNodeWithText("Uptown").assertExists()
+        composeTestRule.onNodeWithText("Suggested Routes").assertExists()
+        composeTestRule.onAllNodesWithText("ROUTE 216W").assertCountEquals(2)
+        composeTestRule.onAllNodesWithText("IIIT Gachibowli").assertCountEquals(2)
+        composeTestRule.onNodeWithText("ROUTE 219").assertExists()
+        composeTestRule.onNodeWithText("Patancheru").assertExists()
     }
 
     @Test

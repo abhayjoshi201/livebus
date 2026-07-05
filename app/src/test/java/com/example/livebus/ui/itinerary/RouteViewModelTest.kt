@@ -18,7 +18,7 @@ class RouteViewModelTest {
     fun initialState_isCorrect() {
         assertEquals(5, viewModel.stops.value.size)
         assertEquals(2, viewModel.currentBusStopIndex.value)
-        assertEquals("ROUTE 101-A", viewModel.routeName.value)
+        assertEquals("ROUTE 216W", viewModel.routeName.value)
         assertEquals(25, viewModel.totalEtaMinutes.value)
     }
 

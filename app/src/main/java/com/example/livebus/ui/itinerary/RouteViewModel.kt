@@ -31,20 +31,20 @@ class RouteViewModel @Inject constructor() : ViewModel() {
     private val compositeDisposable = CompositeDisposable()
 
     private val defaultStops = listOf(
-        Stop("1", "Northgate Mall", 0.0, 0),
-        Stop("2", "Market Junction", 3.2, 8),
-        Stop("3", "Central Station", 6.8, 15),
-        Stop("4", "State Library", 9.5, 21),
-        Stop("5", "University Campus", 12.0, 28)
+        Stop("1", "Mehdipatnam Bus Depot", 0.0, 0),
+        Stop("2", "Tolichowki X Roads", 3.2, 8),
+        Stop("3", "Shaikpet Dargah", 6.8, 15),
+        Stop("4", "Raidurg Bio-Diversity", 9.5, 21),
+        Stop("5", "IIIT Gachibowli Campus", 12.0, 28)
     )
 
     private val _stops = MutableStateFlow(defaultStops)
     val stops: StateFlow<List<Stop>> = _stops.asStateFlow()
 
-    private val _routeName = MutableStateFlow("ROUTE 101-A")
+    private val _routeName = MutableStateFlow("ROUTE 216W")
     val routeName: StateFlow<String> = _routeName.asStateFlow()
 
-    private val _destinationName = MutableStateFlow("University Campus")
+    private val _destinationName = MutableStateFlow("IIIT Gachibowli Campus")
     val destinationName: StateFlow<String> = _destinationName.asStateFlow()
 
     private val _totalEtaMinutes = MutableStateFlow(25)
@@ -53,7 +53,7 @@ class RouteViewModel @Inject constructor() : ViewModel() {
     private val _remainingDistanceKm = MutableStateFlow(12.0)
     val remainingDistanceKm: StateFlow<Double> = _remainingDistanceKm.asStateFlow()
 
-    // Index 2 is Central Station by default (target stop)
+    // Index 2 is Shaikpet Dargah by default (target stop)
     private val _currentBusStopIndex = MutableStateFlow(2)
     val currentBusStopIndex: StateFlow<Int> = _currentBusStopIndex.asStateFlow()
 
@@ -70,7 +70,7 @@ class RouteViewModel @Inject constructor() : ViewModel() {
     private fun connectStomp() {
         stompClient.connect()
 
-        val disposable = stompClient.topic("/topic/route/101-A")
+        val disposable = stompClient.topic("/topic/route/216W")
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.payload }

@@ -13,10 +13,10 @@ import java.util.Date
 import java.util.Locale
 
 class ShiftViewModel : ViewModel() {
-    private val _selectedRoute = MutableStateFlow("101-A (Downtown Express)")
+    private val _selectedRoute = MutableStateFlow("216W (HITEC City Express)")
     val selectedRoute: StateFlow<String> = _selectedRoute.asStateFlow()
 
-    private val _selectedBus = MutableStateFlow("BUS-4052")
+    private val _selectedBus = MutableStateFlow("TG-09-Z-4052")
     val selectedBus: StateFlow<String> = _selectedBus.asStateFlow()
 
     private val _isBroadcasting = MutableStateFlow(false)

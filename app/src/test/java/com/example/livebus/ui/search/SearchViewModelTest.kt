@@ -25,11 +25,11 @@ class SearchViewModelTest {
 
     @Test
     fun filterResults_matchesRoutesAndStops() {
-        val resultsAll = viewModel.filterResults("101", SearchFilter.ALL)
+        val resultsAll = viewModel.filterResults("216", SearchFilter.ALL)
         assertEquals(1, resultsAll.size)
         assertTrue(resultsAll[0] is SearchResult.RouteResult)
 
-        val resultsStops = viewModel.filterResults("Central", SearchFilter.ALL)
+        val resultsStops = viewModel.filterResults("Mehdipatnam", SearchFilter.ALL)
         assertEquals(1, resultsStops.size)
         assertTrue(resultsStops[0] is SearchResult.StopResult)
 
@@ -40,21 +40,21 @@ class SearchViewModelTest {
 
     @Test
     fun addRecentSearch_movesToTopAndLimitsSize() {
-        assertEquals("Central Station", viewModel.recentSearches.value[0])
+        assertEquals("Mehdipatnam Bus Depot", viewModel.recentSearches.value[0])
         viewModel.addRecentSearch("New Search Query")
         assertEquals("New Search Query", viewModel.recentSearches.value[0])
         assertEquals(4, viewModel.recentSearches.value.size)
 
         // Adding duplicate moves it to front
-        viewModel.addRecentSearch("Route 101-A")
-        assertEquals("Route 101-A", viewModel.recentSearches.value[0])
+        viewModel.addRecentSearch("Route 216W")
+        assertEquals("Route 216W", viewModel.recentSearches.value[0])
         assertEquals(4, viewModel.recentSearches.value.size)
     }
 
     @Test
     fun removeRecentSearch_deletesItem() {
-        viewModel.removeRecentSearch("Central Station")
+        viewModel.removeRecentSearch("Mehdipatnam Bus Depot")
         assertEquals(2, viewModel.recentSearches.value.size)
-        assertTrue(viewModel.recentSearches.value.none { it == "Central Station" })
+        assertTrue(viewModel.recentSearches.value.none { it == "Mehdipatnam Bus Depot" })
     }
 }

@@ -25,7 +25,7 @@ sealed interface SearchResult {
         val id: String,
         val stopName: String,
         val distanceKm: Double,
-        val arrivingRoutes: List<String> = listOf("101-A (5 min)", "204-B (12 min)")
+        val arrivingRoutes: List<String> = listOf("216W (5 min)", "219 (12 min)")
     ) : SearchResult
 }
 
@@ -33,19 +33,19 @@ sealed interface SearchResult {
 class SearchViewModel @Inject constructor() : ViewModel() {
 
     private val allRoutes = listOf(
-        SearchResult.RouteResult("r1", "Route 101-A", "Towards City Center", "ON TIME"),
-        SearchResult.RouteResult("r2", "Route 204-B", "Towards Uptown", "DELAYED"),
-        SearchResult.RouteResult("r3", "Route 305-C", "Towards Northgate Mall", "ON TIME"),
-        SearchResult.RouteResult("r4", "Route 42-C", "Towards Airport Terminal", "ON TIME"),
-        SearchResult.RouteResult("r5", "Route 15-X", "Towards University Campus", "SEVERE DELAY")
+        SearchResult.RouteResult("r1", "Route 216W", "Towards IIIT Gachibowli", "ON TIME"),
+        SearchResult.RouteResult("r2", "Route 219", "Towards Patancheru", "DELAYED"),
+        SearchResult.RouteResult("r3", "Route 10H", "Towards Secunderabad Station", "ON TIME"),
+        SearchResult.RouteResult("r4", "Route 47L", "Towards RGIA Shamshabad Airport", "ON TIME"),
+        SearchResult.RouteResult("r5", "Route 222A", "Towards Lingampally", "SEVERE DELAY")
     )
 
     private val allStops = listOf(
-        SearchResult.StopResult("s1", "Central Station", 0.8, listOf("101-A (5 min)", "204-B (12 min)")),
-        SearchResult.StopResult("s2", "Market Junction", 0.2, listOf("42-C (2 min)", "101-A (8 min)")),
-        SearchResult.StopResult("s3", "Northgate Mall", 4.5, listOf("305-C (3 min)")),
-        SearchResult.StopResult("s4", "State Library", 1.8, listOf("15-X (10 min)", "101-A (15 min)")),
-        SearchResult.StopResult("s5", "University Campus", 3.1, listOf("15-X (4 min)", "204-B (9 min)"))
+        SearchResult.StopResult("s1", "Mehdipatnam Bus Depot", 0.8, listOf("216W (5 min)", "219 (12 min)")),
+        SearchResult.StopResult("s2", "Tolichowki X Roads", 0.2, listOf("47L (2 min)", "216W (8 min)")),
+        SearchResult.StopResult("s3", "Secunderabad Station", 4.5, listOf("10H (3 min)")),
+        SearchResult.StopResult("s4", "Raidurg Bio-Diversity", 1.8, listOf("222A (10 min)", "216W (15 min)")),
+        SearchResult.StopResult("s5", "IIIT Gachibowli Campus", 3.1, listOf("222A (4 min)", "219 (9 min)"))
     )
 
     private val _searchQuery = MutableStateFlow("")
@@ -54,7 +54,7 @@ class SearchViewModel @Inject constructor() : ViewModel() {
     private val _selectedFilter = MutableStateFlow(SearchFilter.ALL)
     val selectedFilter: StateFlow<SearchFilter> = _selectedFilter.asStateFlow()
 
-    private val _recentSearches = MutableStateFlow(listOf("Central Station", "Route 101-A", "Market Junction"))
+    private val _recentSearches = MutableStateFlow(listOf("Mehdipatnam Bus Depot", "Route 216W", "Tolichowki X Roads"))
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
     val suggestedRoutes: List<SearchResult.RouteResult> = allRoutes.take(2)
