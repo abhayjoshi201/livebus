@@ -810,10 +810,18 @@ fun OperatorSettingsScreen(
 }
 
 // ==========================================
-// 7. TRIP END STATUS SCREEN
+// 7. TRIP END STATUS SCREEN (With Post-Flight Actions)
 // ==========================================
 @Composable
-fun TripEndScreen(onReturnHome: () -> Unit) {
+fun TripEndScreen(
+    route: String = "101-A (Downtown Express)",
+    busId: String = "BUS-4052",
+    txCount: Int = 0,
+    onReturnHome: () -> Unit,
+    onViewLogs: () -> Unit = {},
+    onSwitchToPassenger: () -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -824,7 +832,7 @@ fun TripEndScreen(onReturnHome: () -> Unit) {
     ) {
         Box(
             modifier = Modifier
-                .size(90.dp)
+                .size(80.dp)
                 .clip(CircleShape)
                 .background(OnTimeLight),
             contentAlignment = Alignment.Center
@@ -833,15 +841,15 @@ fun TripEndScreen(onReturnHome: () -> Unit) {
                 imageVector = Icons.Default.Check,
                 contentDescription = "Completed",
                 tint = Color.White,
-                modifier = Modifier.size(52.dp)
+                modifier = Modifier.size(46.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         Text(
             text = "Shift Completed Cleanly",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -849,25 +857,114 @@ fun TripEndScreen(onReturnHome: () -> Unit) {
             text = "GPS telemetry broadcasting terminated. Vehicle disconnected from broker.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(top = 4.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
+        // Post-Flight Summary Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+        ) {
+            Column(modifier = Modifier.padding(18.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("POST-FLIGHT REPORT", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = ForestGreen)
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = SevereDelayLight.copy(alpha = 0.15f)
+                    ) {
+                        Text("OFFLINE", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = SevereDelayLight, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("ASSIGNED FLEET UNIT: #$busId", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("COMPLETED ROUTE: $route", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("TELEMETRY PACKETS SENT: TX #$txCount", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = OnTimeLight)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // OPTION 1: START ANOTHER SHIFT
         Button(
             onClick = onReturnHome,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(52.dp)
         ) {
+            Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Start Another Shift →",
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // OPTION 2: SWITCH TO PASSENGER APP
+        Button(
+            onClick = onSwitchToPassenger,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Icon(Icons.Default.DirectionsBus, contentDescription = null, tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "← Switch to Passenger Commute App",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // OPTION 3: VIEW INCIDENT LOGS
+            OutlinedButton(
+                onClick = onViewLogs,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Audit Logs", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+
+            // OPTION 4: LOG OUT / DEPOT HANDOFF
+            OutlinedButton(
+                onClick = onLogout,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = SevereDelayLight),
+                border = androidx.compose.foundation.BorderStroke(1.dp, SevereDelayLight),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+            ) {
+                Icon(Icons.Default.Lock, contentDescription = null, tint = SevereDelayLight, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Log Out", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
