@@ -16,6 +16,10 @@ import org.json.JSONObject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
+import com.example.livebus.data.TransitRepository
+import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.Job
+
 data class LatLng(val latitude: Double, val longitude: Double)
 
 data class RouteDetails(
@@ -25,32 +29,31 @@ data class RouteDetails(
 )
 
 @HiltViewModel
-class LiveTrackingViewModel @Inject constructor() : ViewModel() {
+class LiveTrackingViewModel @Inject constructor(
+    private val transitRepository: TransitRepository
+) : ViewModel() {
 
     private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/transit-ws")
     private val compositeDisposable = CompositeDisposable()
+    private var routeDisposable: Disposable? = null
+    private var simulationJob: Job? = null
 
-    // Default initial coordinates for Hyderabad (Mehdipatnam Bus Depot)
-    private val _busLocation = MutableStateFlow<LatLng?>(LatLng(17.3916, 78.4356))
+    private val _busLocation = MutableStateFlow<LatLng?>(transitRepository.getActiveRoute()?.initialBusLocation)
     val busLocation: StateFlow<LatLng?> = _busLocation.asStateFlow()
 
-    // Authoritative road intersection waypoints along Route 216W (Mehdipatnam to Gachibowli corridor)
-    private val route216Waypoints = listOf(
-        LatLng(17.3916, 78.4356), // Start: Mehdipatnam Bus Depot
-        LatLng(17.4018, 78.4111), // Tolichowki X Roads
-        LatLng(17.4065, 78.3912), // Shaikpet Dargah
-        LatLng(17.4242, 78.3816), // Raidurg Bio-Diversity X Roads
-        LatLng(17.4401, 78.3611), // Gachibowli Stadium X Roads
-        LatLng(17.4455, 78.3489)  // Stop: IIIT Hyderabad Campus
-    )
-
-    private val _routeWaypoints = MutableStateFlow(route216Waypoints)
+    private val _routeWaypoints = MutableStateFlow(transitRepository.getActiveRoute()?.waypoints ?: emptyList())
     val routeWaypoints: StateFlow<List<LatLng>> = _routeWaypoints.asStateFlow()
 
-    private val _userStopLocation = MutableStateFlow(LatLng(17.4455, 78.3489))
+    private val _userStopLocation = MutableStateFlow(transitRepository.getActiveRoute()?.userStopLocation ?: LatLng(17.4455, 78.3489))
     val userStopLocation: StateFlow<LatLng> = _userStopLocation.asStateFlow()
 
-    private val _routeDetails = MutableStateFlow(RouteDetails())
+    private val _routeDetails = MutableStateFlow(
+        RouteDetails(
+            routeName = transitRepository.getActiveRoute()?.displayName ?: "No Route Selected",
+            destination = transitRepository.getActiveRoute()?.destination ?: "Pick from Plan Trip",
+            direction = transitRepository.getActiveRoute()?.direction ?: "Hyderabad IT Corridor"
+        )
+    )
     val routeDetails: StateFlow<RouteDetails> = _routeDetails.asStateFlow()
 
     private val _eta = MutableStateFlow(5)
@@ -66,12 +69,41 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
     val isAlertActive: StateFlow<Boolean> = _isAlertActive.asStateFlow()
 
     init {
-        connectStomp()
+        stompClient.connect()
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
+            transitRepository.activeRouteId.collect {
+                val route = transitRepository.getActiveRoute()
+                if (route != null) {
+                    _busLocation.value = route.initialBusLocation
+                    _userStopLocation.value = route.userStopLocation
+                    _routeWaypoints.value = route.waypoints
+                    _routeDetails.value = RouteDetails(
+                        routeName = route.displayName,
+                        destination = route.destination,
+                        direction = route.direction
+                    )
+                    subscribeToRouteTopic(route.stompTopic)
+                    startSimulating()
+                } else {
+                    _busLocation.value = null
+                    _routeWaypoints.value = emptyList()
+                    _routeDetails.value = RouteDetails(
+                        routeName = "No Route Selected",
+                        destination = "Pick from Plan Trip",
+                        direction = "Hyderabad IT Corridor"
+                    )
+                    routeDisposable?.dispose()
+                    simulationJob?.cancel()
+                }
+            }
+        }
     }
 
     fun startSimulating() {
-        fetchDirectionsAndStartSimulation()
-        viewModelScope.launch {
+        simulationJob?.cancel()
+        val activeRoute = transitRepository.getActiveRoute() ?: return
+        fetchDirectionsForActiveRoute(activeRoute)
+        simulationJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
             var currentSegment = 0
             var progress = 0.0
             while (true) {
@@ -85,7 +117,7 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
                         progress = 0.0
                         currentSegment++
                         if (currentSegment >= waypoints.size - 1) {
-                            currentSegment = 0 // Loop route simulation for continuous demonstration
+                            currentSegment = 0
                         }
                     }
                     val activeStart = waypoints[currentSegment]
@@ -102,12 +134,14 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun fetchDirectionsAndStartSimulation() {
+    private fun fetchDirectionsForActiveRoute(route: com.example.livebus.data.TransitRoute) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 val apiKey = com.example.livebus.BuildConfig.MAPS_API_KEY
                 if (apiKey.isNotBlank() && !apiKey.contains("PASTE_YOUR")) {
-                    val urlStr = "https://maps.googleapis.com/maps/api/directions/json?origin=17.3916,78.4356&destination=17.4455,78.3489&mode=driving&key=$apiKey"
+                    val origin = "${route.initialBusLocation.latitude},${route.initialBusLocation.longitude}"
+                    val dest = "${route.userStopLocation.latitude},${route.userStopLocation.longitude}"
+                    val urlStr = "https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$dest&mode=driving&key=$apiKey"
                     val url = java.net.URL(urlStr)
                     val conn = url.openConnection() as java.net.HttpURLConnection
                     conn.requestMethod = "GET"
@@ -166,10 +200,9 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
         return poly
     }
 
-    private fun connectStomp() {
-        stompClient.connect()
-
-        val disposable = stompClient.topic("/topic/route/216W")
+    private fun subscribeToRouteTopic(topic: String) {
+        routeDisposable?.dispose()
+        routeDisposable = stompClient.topic(topic)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.payload }
@@ -180,7 +213,6 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
             }, Consumer { error ->
                 println("Error subscribing to STOMP topic: ${error.message}")
             })
-        compositeDisposable.add(disposable)
     }
 
     fun parseAndApplyMessage(payload: String) {

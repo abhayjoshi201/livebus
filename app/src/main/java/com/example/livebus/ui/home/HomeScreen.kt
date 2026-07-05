@@ -46,7 +46,7 @@ import androidx.compose.foundation.clickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToTracking: () -> Unit = {},
+    onNavigateToTracking: (String) -> Unit = {},
     onSearchClick: () -> Unit = {},
     onTicketsClick: () -> Unit = {},
     onAlertsClick: () -> Unit = {},
@@ -67,7 +67,7 @@ fun HomeScreen(
                     BottomNavigationBar(
                         selectedTabIndex = 0,
                         onHomeClick = {},
-                        onMapClick = onNavigateToTracking,
+                        onMapClick = { onNavigateToTracking("216W") },
                         onTicketsClick = onTicketsClick,
                         onAlertsClick = onAlertsClick,
                         onSettingsClick = onSettingsClick
@@ -96,7 +96,7 @@ fun HomeScreen(
                     QuickCommuteButtonsSection()
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    FavoriteRoutesSection()
+                    FavoriteRoutesSection(onRouteClick = onNavigateToTracking)
                     Spacer(modifier = Modifier.height(24.dp))
 
                     PinnedStopsSection()
@@ -272,7 +272,7 @@ fun QuickCommuteButtonsSection() {
 }
 
 @Composable
-fun FavoriteRoutesSection(onRouteClick: () -> Unit = {}) {
+fun FavoriteRoutesSection(onRouteClick: (String) -> Unit = {}) {
     val isDarkTheme = isSystemInDarkTheme()
     val onTimeColor = if (isDarkTheme) DarkGreen else LightGreen
     val minorDelayColor = if (isDarkTheme) DarkAmber else LightAmber
@@ -301,7 +301,7 @@ fun FavoriteRoutesSection(onRouteClick: () -> Unit = {}) {
                     routeName = "ROUTE 216W",
                     destination = "IIIT Gachibowli",
                     statusColor = onTimeColor,
-                    onClick = onRouteClick
+                    onClick = { onRouteClick("216W") }
                 )
             }
             item {
@@ -309,7 +309,7 @@ fun FavoriteRoutesSection(onRouteClick: () -> Unit = {}) {
                     routeName = "ROUTE 219",
                     destination = "Patancheru",
                     statusColor = minorDelayColor,
-                    onClick = onRouteClick
+                    onClick = { onRouteClick("219") }
                 )
             }
         }

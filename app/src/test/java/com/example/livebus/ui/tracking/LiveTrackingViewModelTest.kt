@@ -12,7 +12,9 @@ class LiveTrackingViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = LiveTrackingViewModel()
+        val repo = com.example.livebus.data.TransitRepository()
+        repo.selectRoute("216W")
+        viewModel = LiveTrackingViewModel(repo)
     }
 
     @Test
