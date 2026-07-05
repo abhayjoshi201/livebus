@@ -116,9 +116,8 @@ fun DriverBottomNavigationBar(
 ) {
     val items = listOf(
         DriverNavItem("Duty Setup", Icons.Default.Dashboard),
-        DriverNavItem("Telemetry", Icons.Default.Explore),
-        DriverNavItem("Incident Log", Icons.AutoMirrored.Filled.ListAlt),
-        DriverNavItem("Settings", Icons.Default.Settings)
+        DriverNavItem("Live Telemetry", Icons.Default.Explore),
+        DriverNavItem("Operator Settings", Icons.Default.Settings)
     )
 
     NavigationBar(
@@ -495,6 +494,9 @@ fun ActiveShiftScreen(
         label = "alpha"
     )
 
+    var activeBanner by remember { mutableStateOf<String?>(null) }
+    var bannerColor by remember { mutableStateOf(OnTimeLight) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -558,7 +560,7 @@ fun ActiveShiftScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "AUTHORITY DISPATCH CONTROLS",
             style = MaterialTheme.typography.labelSmall,
@@ -568,9 +570,38 @@ fun ActiveShiftScreen(
         )
         Spacer(modifier = Modifier.height(10.dp))
 
+        if (activeBanner != null) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = bannerColor.copy(alpha = 0.18f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, bannerColor),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = bannerColor, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = activeBanner!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
         // MASSIVE TOUCH TARGET 1: TRAFFIC DELAY (+5m)
         Button(
-            onClick = onReportDelay,
+            onClick = {
+                onReportDelay()
+                bannerColor = DelayedLight
+                activeBanner = "🟠 TRAFFIC DELAY (+5 MIN) transmitted to Admin Dispatch."
+            },
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = DelayedLight),
             modifier = Modifier
@@ -591,7 +622,11 @@ fun ActiveShiftScreen(
 
         // MASSIVE TOUCH TARGET 2: CROWD REPORTING
         Button(
-            onClick = onReportCrowd,
+            onClick = {
+                onReportCrowd()
+                bannerColor = MutedBlue
+                activeBanner = "🔵 CROWD DENSITY alert transmitted to Admin Dispatch."
+            },
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MutedBlue),
             modifier = Modifier
@@ -612,7 +647,11 @@ fun ActiveShiftScreen(
 
         // MASSIVE TOUCH TARGET 3: EMERGENCY SOS
         Button(
-            onClick = onTriggerSos,
+            onClick = {
+                onTriggerSos()
+                bannerColor = SevereDelayLight
+                activeBanner = "🔴 EMERGENCY SOS broadcasted to Admin Command Center!"
+            },
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = SevereDelayLight),
             modifier = Modifier
@@ -649,76 +688,7 @@ fun ActiveShiftScreen(
 }
 
 // ==========================================
-// 5. INCIDENT LOG SCREEN (Real-time Telemetry Terminal)
-// ==========================================
-@Composable
-fun IncidentLogScreen(logs: List<String>) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A0A0F))
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "⚡ DISPATCH TELEMETRY STREAM",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = OnTimeLight
-            )
-            Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = Color(0xFF1E1E2E)
-            ) {
-                Text(
-                    text = "${logs.size} EVENTS",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.LightGray,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        HorizontalDivider(color = Color(0xFF1E1E2E))
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(logs) { logEntry ->
-                val tint = when {
-                    logEntry.contains("EMERGENCY") || logEntry.contains("🔴") -> SevereDelayLight
-                    logEntry.contains("TRAFFIC") || logEntry.contains("🟠") -> DelayedLight
-                    logEntry.contains("TELEMETRY") || logEntry.contains("🟢") -> OnTimeLight
-                    logEntry.contains("CROWD") || logEntry.contains("🔵") -> MutedBlue
-                    else -> Color(0xFFA6ACCD)
-                }
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = Color(0xFF13131D),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, tint.copy(alpha = 0.3f)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = logEntry,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = tint,
-                        modifier = Modifier.padding(10.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-// ==========================================
-// 6. OPERATOR SETTINGS SCREEN
+// 5. OPERATOR SETTINGS SCREEN
 // ==========================================
 @Composable
 fun OperatorSettingsScreen(
@@ -818,7 +788,6 @@ fun TripEndScreen(
     busId: String = "BUS-4052",
     txCount: Int = 0,
     onReturnHome: () -> Unit,
-    onViewLogs: () -> Unit = {},
     onSwitchToPassenger: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
@@ -937,34 +906,19 @@ fun TripEndScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            // OPTION 3: VIEW INCIDENT LOGS
-            OutlinedButton(
-                onClick = onViewLogs,
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Audit Logs", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-
-            // OPTION 4: LOG OUT / DEPOT HANDOFF
-            OutlinedButton(
-                onClick = onLogout,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = SevereDelayLight),
-                border = androidx.compose.foundation.BorderStroke(1.dp, SevereDelayLight),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(48.dp)
-            ) {
-                Icon(Icons.Default.Lock, contentDescription = null, tint = SevereDelayLight, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Log Out", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
+        // OPTION 3: LOG OUT / DEPOT HANDOFF
+        OutlinedButton(
+            onClick = onLogout,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = SevereDelayLight),
+            border = androidx.compose.foundation.BorderStroke(1.dp, SevereDelayLight),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+        ) {
+            Icon(Icons.Default.Lock, contentDescription = null, tint = SevereDelayLight)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Log Out of Operator Credential (Depot Handoff)", fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
