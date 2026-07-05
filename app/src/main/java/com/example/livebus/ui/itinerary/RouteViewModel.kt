@@ -63,8 +63,12 @@ class RouteViewModel @Inject constructor(
     init {
         stompClient.connect()
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
-            transitRepository.activeRouteId.collect {
-                val route = transitRepository.getActiveRoute()
+            kotlinx.coroutines.flow.combine(
+                transitRepository.activeRouteId,
+                transitRepository.selectedCityId
+            ) { routeId, cityId ->
+                Pair(transitRepository.getActiveRoute(), transitRepository.getSelectedCity())
+            }.collect { (route, city) ->
                 if (route != null) {
                     _stops.value = route.stops
                     _routeName.value = route.routeName
@@ -74,7 +78,7 @@ class RouteViewModel @Inject constructor(
                 } else {
                     _stops.value = emptyList()
                     _routeName.value = "No Route Selected"
-                    _destinationName.value = "Select a route from Plan Trip"
+                    _destinationName.value = "${city.name} (${city.defaultLocationName})"
                     routeDisposable?.dispose()
                 }
             }

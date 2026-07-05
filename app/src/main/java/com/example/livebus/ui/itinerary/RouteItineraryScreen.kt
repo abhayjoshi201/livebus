@@ -95,7 +95,7 @@ fun RouteItineraryScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "📍 Your Location: Hyderabad IT Corridor",
+                            text = "📍 Your Location: $destinationName",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
