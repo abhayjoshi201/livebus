@@ -44,12 +44,12 @@ public class SecurityConfig {
             )
             
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/index.html", "/livebus-tracker.html", "/static/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                 .requestMatchers("/api/auth/login", "/error").permitAll() 
                 .requestMatchers("/api/passenger/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/driver/**").hasRole("DRIVER")
                 .requestMatchers("/ws-livebus/**").permitAll()
-                .requestMatchers("/livebus-tracker.html").permitAll()
                 
                 .anyRequest().authenticated() 
             );
