@@ -22,18 +22,19 @@
     <style>
         :root {
             --bg-dark: #090c15;
-            --bg-card: rgba(18, 24, 41, 0.75);
-            --bg-card-hover: rgba(28, 38, 65, 0.85);
+            --bg-panel: rgba(13, 18, 30, 0.88);
+            --bg-card: rgba(24, 32, 53, 0.75);
+            --bg-card-hover: rgba(36, 48, 78, 0.9);
             --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.4);
+            --primary-glow: rgba(59, 130, 246, 0.45);
             --accent: #8b5cf6;
             --success: #10b981;
             --warning: #f59e0b;
             --error: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
-            --glass-blur: blur(16px);
+            --border: rgba(255, 255, 255, 0.12);
+            --glass-blur: blur(20px);
         }
 
         * {
@@ -52,16 +53,16 @@
             overflow: hidden;
         }
 
-        /* Top Navigation Header */
+        /* --- TOP NAVIGATION HEADER --- */
         header {
-            height: 72px;
-            background: var(--bg-card);
+            height: 70px;
+            background: var(--bg-panel);
             backdrop-filter: var(--glass-blur);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 32px;
+            padding: 0 28px;
             z-index: 1000;
         }
 
@@ -69,6 +70,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
         }
 
         .logo-icon {
@@ -81,6 +83,11 @@
             justify-content: center;
             font-size: 20px;
             box-shadow: 0 0 20px var(--primary-glow);
+            transition: transform 0.2s ease;
+        }
+
+        .logo-area:hover .logo-icon {
+            transform: scale(1.05) rotate(-5deg);
         }
 
         .logo-title {
@@ -100,7 +107,7 @@
         }
 
         .hub-badge {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border);
             padding: 6px 14px;
             border-radius: 20px;
@@ -113,11 +120,11 @@
         }
 
         .city-select {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            background: rgba(59, 130, 246, 0.18);
+            border: 1px solid rgba(59, 130, 246, 0.45);
             color: #fff;
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             padding: 8px 16px;
             border-radius: 12px;
@@ -127,8 +134,8 @@
         }
 
         .city-select:hover {
-            background: rgba(59, 130, 246, 0.25);
-            box-shadow: 0 0 15px var(--primary-glow);
+            background: rgba(59, 130, 246, 0.28);
+            box-shadow: 0 0 18px var(--primary-glow);
         }
 
         .city-select option {
@@ -137,7 +144,7 @@
             font-weight: 600;
         }
 
-        /* Main Workspace Layout */
+        /* --- MAIN WORKSPACE LAYOUT --- */
         main {
             flex: 1;
             display: flex;
@@ -145,113 +152,256 @@
             overflow: hidden;
         }
 
-        /* Left Side Panel (Glassmorphic Dashboard) */
-        .sidebar {
-            width: 420px;
-            background: rgba(13, 18, 30, 0.85);
+        /* --- SIDE PANELS & TRANSITIONS --- */
+        .sidebar-container {
+            width: 440px;
+            position: relative;
+            z-index: 500;
+            background: var(--bg-panel);
             backdrop-filter: var(--glass-blur);
             border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            z-index: 500;
-            overflow-y: auto;
-            padding: 24px;
-            gap: 24px;
+            overflow: hidden;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
         }
 
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
+        .panel-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
         }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
+
+        .panel-view::-webkit-scrollbar { width: 6px; }
+        .panel-view::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+        /* Slide Transition Classes */
+        .view-hidden-left {
+            transform: translateX(-105%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .view-hidden-right {
+            transform: translateX(105%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .view-active {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- HOME OVERVIEW COMPONENTS --- */
+        /* Search Bar */
+        .search-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+
+        /* Service Alerts Pulsing Banner */
+        .alert-banner {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: alertPulse 2s infinite alternate;
+        }
+
+        @keyframes alertPulse {
+            0% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+            100% { border-color: rgba(239, 68, 68, 0.7); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        }
+
+        .alert-banner:hover {
+            transform: scale(1.01);
+            background: rgba(239, 68, 68, 0.22);
+        }
+
+        /* Quick Commute Pills */
+        .quick-chips {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .commute-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .commute-chip:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
         }
 
         .section-title {
             font-family: 'Outfit', sans-serif;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            color: #fff;
         }
 
-        /* Suggested Routes Grid */
+        .see-all-btn {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .see-all-btn:hover { opacity: 0.8; }
+
+        /* Suggested Routes Grid (Matches Android RouteCard colors) */
         .routes-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
         .route-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 16px;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 110px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
         }
 
         .route-card:hover {
-            transform: translateY(-2px);
-            background: var(--bg-card-hover);
-            border-color: rgba(59, 130, 246, 0.5);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
 
-        .route-card.active {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-            border-color: var(--primary);
-            box-shadow: 0 0 20px var(--primary-glow);
-        }
+        .route-card.bg-green { background: linear-gradient(135deg, #065f46, #047857); border: 1px solid #10b981; }
+        .route-card.bg-amber { background: linear-gradient(135deg, #78350f, #92400e); border: 1px solid #f59e0b; }
+        .route-card.bg-blue { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); border: 1px solid #3b82f6; }
 
-        .route-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .route-name {
+        .route-card-title {
             font-family: 'Outfit', sans-serif;
             font-size: 18px;
             font-weight: 800;
             color: #fff;
         }
 
-        .route-status-pill {
-            font-size: 11px;
+        .route-card-sub {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.3;
+        }
+
+        /* Pinned & Nearest Stop Cards */
+        .stop-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stop-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateX(4px);
+        }
+
+        .stop-name { font-size: 15px; font-weight: 700; color: #fff; }
+        .stop-row { font-size: 13px; color: var(--text-muted); display: flex; justify-content: space-between; }
+        .stop-time { font-weight: 600; color: var(--success); }
+
+        /* --- LIVE TRACKING ITINERARY VIEW --- */
+        .back-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: #fff;
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-        }
-
-        .status-ontime { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
-        .status-delayed { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
-
-        .route-dest {
             font-size: 13px;
-            color: var(--text-muted);
-            line-height: 1.4;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            transition: all 0.2s ease;
         }
 
-        /* Live Tracking Telemetry Panel */
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(-3px);
+        }
+
         .telemetry-panel {
-            background: linear-gradient(180deg, rgba(20, 28, 48, 0.9) 0%, rgba(15, 21, 37, 0.9) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: linear-gradient(180deg, rgba(20, 28, 48, 0.95) 0%, rgba(15, 21, 37, 0.95) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
         }
 
         .telemetry-header {
@@ -269,64 +419,47 @@
             font-size: 12px;
             font-weight: 700;
             color: var(--success);
+            background: rgba(16, 185, 129, 0.12);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .pulse-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: var(--success);
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            animation: dotPulse 1.5s infinite;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        @keyframes dotPulse {
+            0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
         .telemetry-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 14px;
         }
 
         .stat-box {
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 14px;
             padding: 14px;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .stat-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
+        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; color: #fff; }
+        .stat-unit { font-size: 14px; font-weight: 500; color: var(--text-muted); }
 
-        .stat-value {
-            font-family: 'Outfit', sans-serif;
-            font-size: 28px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .stat-unit {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-
-        /* Headway Queue Carousel */
-        .queue-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        /* Upcoming Arrivals Queue */
         .queue-list {
             display: flex;
             gap: 8px;
@@ -360,7 +493,7 @@
             font-size: 14px;
             font-weight: 700;
             border: none;
-            padding: 14px;
+            padding: 15px;
             border-radius: 14px;
             cursor: pointer;
             box-shadow: 0 4px 15px var(--primary-glow);
@@ -373,21 +506,18 @@
 
         .action-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+            box-shadow: 0 6px 22px rgba(59, 130, 246, 0.65);
         }
 
-        /* Map Container */
+        /* --- INTERACTIVE LEAFLET MAP --- */
         #map {
             flex: 1;
             height: 100%;
             z-index: 10;
         }
 
-        /* Leaflet Dark Theme Overrides */
-        .leaflet-layer,
-        .leaflet-control-zoom-in,
-        .leaflet-control-zoom-out,
-        .leaflet-control-attribution {
+        /* Leaflet Dark Theme & Custom Icons */
+        .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-control-attribution {
             filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
         }
         
@@ -396,14 +526,14 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
             transition: all 0.5s linear;
         }
 
         /* Responsive Design */
-        @media (max-width: 900px) {
+        @media (max-width: 950px) {
             main { flex-direction: column-reverse; }
-            .sidebar { width: 100%; height: 50%; border-right: none; border-top: 1px solid var(--border); }
+            .sidebar-container { width: 100%; height: 52%; border-right: none; border-top: 1px solid var(--border); }
             header { padding: 0 16px; }
             .hub-badge { display: none; }
         }
@@ -413,7 +543,7 @@
 
     <!-- Header / Navbar -->
     <header>
-        <div class="logo-area">
+        <div class="logo-area" onclick="showHomeView()">
             <div class="logo-icon">🚍</div>
             <h1 class="logo-title">LiveBus National Portal</h1>
         </div>
@@ -431,77 +561,141 @@
 
     <!-- Main Workspace -->
     <main>
-        <!-- Left Dashboard Sidebar -->
-        <aside class="sidebar">
-            <!-- Active Route Telemetry -->
-            <div class="telemetry-panel" id="telemetryPanel">
-                <div class="telemetry-header">
+        <!-- Left Side Sliding Panels (Mimicking Android ModalBottomSheet / Screens) -->
+        <aside class="sidebar-container">
+            
+            <!-- VIEW 1: HOME OVERVIEW (Default) -->
+            <div id="homeView" class="panel-view view-active">
+                <!-- Search Bar -->
+                <div class="search-box" onclick="focusSearch()">
+                    <span>🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search routes, stops, or bus numbers..." oninput="filterRoutes(this.value)">
+                </div>
+
+                <!-- Service Alerts Banner -->
+                <div class="alert-banner" onclick="showAdvisory()">
+                    <span style="font-size: 20px;">⚠️</span>
                     <div>
-                        <h2 id="activeRouteName" style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: #fff;">Route 216W</h2>
-                        <p id="activeRouteDest" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Westbound towards IT Corridor</p>
-                    </div>
-                    <div class="live-pulse">
-                        <div class="pulse-dot"></div>
-                        <span>LIVE TELEMETRY</span>
+                        <div style="font-size: 13px; font-weight: 700; color: #fff;" id="alertText">Severe Delay on Route 219</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.8);">Tap to view traffic advisories & reroutes</div>
                     </div>
                 </div>
 
-                <div class="telemetry-stats">
-                    <div class="stat-box">
-                        <span class="stat-label">Estimated Arrival</span>
-                        <div>
-                            <span class="stat-value" id="etaValue">5</span>
-                            <span class="stat-unit">min</span>
+                <!-- Quick Commute Buttons -->
+                <div class="quick-chips">
+                    <div class="commute-chip" onclick="quickNav('Home')">🏠 Home</div>
+                    <div class="commute-chip" onclick="quickNav('Work')">🏢 Work</div>
+                    <div class="commute-chip" onclick="quickNav('Shortcut')">+ Add Shortcut</div>
+                </div>
+
+                <!-- Suggested Routes Section -->
+                <div>
+                    <div class="section-header">
+                        <span class="section-title">Suggested Routes</span>
+                        <span class="see-all-btn" onclick="focusSearch()">See All ></span>
+                    </div>
+                    <div class="routes-grid" id="homeRoutesGrid">
+                        <!-- Clickable route cards injected here -->
+                    </div>
+                </div>
+
+                <!-- Pinned Stops Section -->
+                <div>
+                    <div class="section-header">
+                        <span class="section-title" id="pinnedTitle">Pinned Stops (Hyderabad)</span>
+                    </div>
+                    <div class="stop-card" onclick="selectRouteByIndex(0)">
+                        <div class="stop-name" id="pinnedStopName">🚏 Mehdipatnam Central Depot</div>
+                        <div class="stop-row">
+                            <span id="pinnedRoute1">🚌 Route 216W</span>
+                            <span class="stop-time">Arriving in 5 min</span>
+                        </div>
+                        <div class="stop-row">
+                            <span id="pinnedRoute2">🚌 Route 219</span>
+                            <span style="color: var(--warning); font-weight: 600;">Arriving in 14 min</span>
                         </div>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Distance to Stop</span>
-                        <div>
-                            <span class="stat-value" id="distValue">1.8</span>
-                            <span class="stat-unit">km</span>
+                </div>
+
+                <!-- Nearest Stops Section -->
+                <div>
+                    <div class="section-header">
+                        <span class="section-title" id="nearestTitle">Nearest Stops (0.2 km)</span>
+                    </div>
+                    <div class="stop-card" onclick="selectRouteByIndex(0)">
+                        <div class="stop-name" id="nearestStopName">📍 IIIT Junction Gachibowli</div>
+                        <div class="stop-row">
+                            <span id="nearestRoute">🚌 Route 216W • Westbound Express</span>
+                            <span class="stop-time">2 min away</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Headway Queue -->
-                <div class="queue-section">
-                    <span class="stat-label">Upcoming Arrivals Queue</span>
-                    <div class="queue-list" id="queueList">
-                        <div class="queue-chip primary">🟢 #TG-09-Z-4052 • 5 min</div>
-                        <div class="queue-chip">🟡 #TG-09-Z-4100 • 14 min</div>
-                        <div class="queue-chip">🟡 #TG-09-Z-4222 • 26 min</div>
-                    </div>
-                </div>
-
-                <button class="action-btn" onclick="triggerAlert()">
-                    <span>🔔</span> Set Arrival Alert Notification
+            <!-- VIEW 2: LIVE TRACKING ITINERARY (Slides in when route is selected) -->
+            <div id="trackingView" class="panel-view view-hidden-right">
+                <button class="back-btn" onclick="showHomeView()">
+                    <span>←</span> Back to All Routes
                 </button>
-            </div>
 
-            <!-- Available Routes in City -->
-            <div>
-                <div class="section-title">
-                    <span>Available Metro Routes</span>
-                    <span id="routeCountBadge" style="font-size: 11px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px;">3 Routes</span>
-                </div>
-                <div class="routes-grid" id="routesGrid">
-                    <!-- Dynamic Routes will be injected here -->
-                </div>
-            </div>
+                <!-- Active Route Telemetry Card -->
+                <div class="telemetry-panel">
+                    <div class="telemetry-header">
+                        <div>
+                            <h2 id="activeRouteName" style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: #fff;">Route 216W</h2>
+                            <p id="activeRouteDest" style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">Westbound towards IT Corridor</p>
+                        </div>
+                        <div class="live-pulse">
+                            <div class="pulse-dot"></div>
+                            <span>LIVE</span>
+                        </div>
+                    </div>
 
-            <!-- Pinned Stations -->
-            <div>
-                <div class="section-title">
-                    <span>Pinned Hub Stations</span>
+                    <div class="telemetry-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Estimated Arrival</span>
+                            <div>
+                                <span class="stat-value" id="etaValue">5</span>
+                                <span class="stat-unit">min</span>
+                            </div>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Remaining Dist</span>
+                            <div>
+                                <span class="stat-value" id="distValue">1.8</span>
+                                <span class="stat-unit">km</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Headway Queue -->
+                    <div>
+                        <span class="stat-label" style="display: block; margin-bottom: 8px;">Upcoming Arrivals Queue</span>
+                        <div class="queue-list" id="queueList">
+                            <div class="queue-chip primary">🟢 #TG-09-Z-4052 • 5 min</div>
+                            <div class="queue-chip">🟡 #TG-09-Z-4100 • 14 min</div>
+                            <div class="queue-chip">🟡 #TG-09-Z-4222 • 26 min</div>
+                        </div>
+                    </div>
+
+                    <button class="action-btn" onclick="triggerAlert()">
+                        <span>🔔</span> Set Arrival Alert Notification
+                    </button>
                 </div>
-                <div class="route-card" style="cursor: default;">
-                    <div style="font-weight: 700; color: #fff; margin-bottom: 6px;" id="stationName">🚏 Mehdipatnam Central Depot</div>
-                    <div style="font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
-                        <span id="stationBus1">🚌 Route 216W • Arriving in 5 min (On Time)</span>
-                        <span id="stationBus2">🚌 Route 219 • Arriving in 12 min (Delayed)</span>
+
+                <!-- Stop Timeline / Itinerary List -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 18px;">
+                    <span class="stat-label" style="display: block; margin-bottom: 12px;">Route Corridor Stops</span>
+                    <div style="display: flex; flex-direction: column; gap: 14px; position: relative; padding-left: 12px;" id="itineraryStops">
+                        <div style="font-size: 13px; color: #fff;">🚏 Mehdipatnam Depot (Start)</div>
+                        <div style="font-size: 13px; color: #fff;">🚏 Toli Chowki Junction</div>
+                        <div style="font-size: 13px; color: #fff;">🚏 Shaikpet Flyover</div>
+                        <div style="font-size: 13px; color: #fff;">🚏 Gachibowli Stadium</div>
+                        <div style="font-size: 13px; color: var(--success); font-weight: 700;">📍 IIIT Campus (Boarding Stop)</div>
                     </div>
                 </div>
             </div>
+
         </aside>
 
         <!-- Interactive Map -->
@@ -516,10 +710,12 @@
                 center: [17.4250, 78.3900],
                 zoom: 13,
                 station: "🚏 Mehdipatnam Central Depot",
+                nearest: "📍 IIIT Junction Gachibowli",
+                alert: "Severe Delay on Route 219 • Patancheru Corridor Highway construction",
                 routes: [
-                    { id: "216W", name: "ROUTE 216W", dest: "IIIT Gachibowli Campus", dir: "Westbound towards IT Corridor", busId: "TG-09-Z-4052", status: "ontime", statusText: "On Time", totalMin: 28, totalDist: 12.0, waypoints: [[17.3916, 78.4356], [17.4018, 78.4111], [17.4065, 78.3912], [17.4242, 78.3816], [17.4401, 78.3611], [17.4455, 78.3489]] },
-                    { id: "219", name: "ROUTE 219", dest: "Patancheru Terminal", dir: "Northwest towards Patancheru", busId: "TG-11-Z-8821", status: "delayed", statusText: "Delayed", totalMin: 35, totalDist: 15.2, waypoints: [[17.4875, 78.3881], [17.4982, 78.3891], [17.5050, 78.3490], [17.5144, 78.3242], [17.5287, 78.2667]] },
-                    { id: "10H", name: "ROUTE 10H", dest: "Secunderabad Station", dir: "Eastbound towards Secunderabad", busId: "TG-03-Z-1109", status: "ontime", statusText: "On Time", totalMin: 36, totalDist: 14.8, waypoints: [[17.4483, 78.3725], [17.4325, 78.4072], [17.4375, 78.4483], [17.4418, 78.4735], [17.4399, 78.4983]] }
+                    { id: "216W", name: "ROUTE 216W", dest: "IIIT Gachibowli Campus", dir: "Westbound towards IT Corridor", color: "bg-green", busId: "TG-09-Z-4052", status: "On Time", totalMin: 28, totalDist: 12.0, waypoints: [[17.3916, 78.4356], [17.3945, 78.4280], [17.3980, 78.4190], [17.4018, 78.4111], [17.4040, 78.4010], [17.4065, 78.3912], [17.4140, 78.3860], [17.4242, 78.3816], [17.4320, 78.3710], [17.4401, 78.3611], [17.4430, 78.3550], [17.4455, 78.3489]], stops: ["Mehdipatnam Depot", "Toli Chowki Junction", "Shaikpet Flyover", "Gachibowli Stadium", "IIIT Campus"] },
+                    { id: "219", name: "ROUTE 219", dest: "Patancheru Terminal", dir: "Northwest towards Patancheru", color: "bg-amber", busId: "TG-11-Z-8821", status: "Delayed", totalMin: 35, totalDist: 15.2, waypoints: [[17.4875, 78.3881], [17.4910, 78.3890], [17.4950, 78.3895], [17.4982, 78.3891], [17.5020, 78.3700], [17.5050, 78.3490], [17.5090, 78.3360], [17.5144, 78.3242], [17.5210, 78.2950], [17.5287, 78.2667]], stops: ["Kukatpally Housing Board", "JNTU College", "Miyapur Metro Depot", "BHEL Junction", "Patancheru Terminal"] },
+                    { id: "10H", name: "ROUTE 10H", dest: "Secunderabad Station", dir: "Eastbound towards Secunderabad", color: "bg-blue", busId: "TG-03-Z-1109", status: "On Time", totalMin: 36, totalDist: 14.8, waypoints: [[17.4483, 78.3725], [17.4440, 78.3850], [17.4380, 78.3960], [17.4325, 78.4072], [17.4340, 78.4250], [17.4375, 78.4483], [17.4395, 78.4610], [17.4418, 78.4735], [17.4410, 78.4860], [17.4399, 78.4983]], stops: ["Kondapur Junction", "Hitech City Metro", "Jubilee Hills Checkpost", "Panjagutta Flyover", "Secunderabad East Station"] }
                 ]
             },
             "BLR": {
@@ -527,9 +723,11 @@
                 center: [12.9550, 77.6600],
                 zoom: 12,
                 station: "🚏 Silk Board Junction TTMC",
+                nearest: "📍 Indiranagar 100ft Road Stop",
+                alert: "Heavy Waterlogging Alert on ORR • Route 500-D experiencing minor delays",
                 routes: [
-                    { id: "500-D", name: "ROUTE 500-D", dest: "Hebbal Bridge Terminal", dir: "Northbound Outer Ring Road Express", busId: "KA-57-F-2099", status: "ontime", statusText: "On Time", totalMin: 52, totalDist: 22.0, waypoints: [[12.9172, 77.6228], [12.9260, 77.6762], [12.9569, 77.7011], [12.9935, 77.6611], [13.0354, 77.5988]] },
-                    { id: "KIA-8", name: "ROUTE KIA-8", dest: "Kempegowda Airport T1", dir: "Airport Vayu Vajra AC Service", busId: "KA-57-A-8001", status: "delayed", statusText: "Delayed", totalMin: 60, totalDist: 34.5, waypoints: [[12.9698, 77.7499], [12.9982, 77.7564], [13.0520, 77.7590], [13.1986, 77.7066]] }
+                    { id: "500-D", name: "ROUTE 500-D", dest: "Hebbal Bridge Terminal", dir: "Northbound Outer Ring Road Express", color: "bg-green", busId: "KA-57-F-2099", status: "On Time", totalMin: 52, totalDist: 22.0, waypoints: [[12.9172, 77.6228], [12.9195, 77.6380], [12.9230, 77.6520], [12.9260, 77.6650], [12.9305, 77.6800], [12.9400, 77.6920], [12.9520, 77.6990], [12.9650, 77.7010], [12.9780, 77.6980], [12.9900, 77.6880], [13.0020, 77.6750], [13.0120, 77.6550], [13.0200, 77.6350], [13.0280, 77.6150], [13.0354, 77.5988]], stops: ["Central Silk Board", "Agara Lake", "Marathahalli Bridge", "KR Puram Railway Station", "Hebbal Bridge Terminal"] },
+                    { id: "KIA-8", name: "ROUTE KIA-8", dest: "Kempegowda Airport T1", dir: "Airport Vayu Vajra AC Service", color: "bg-amber", busId: "KA-57-A-8001", status: "Delayed", totalMin: 60, totalDist: 34.5, waypoints: [[12.9698, 77.7499], [12.9820, 77.7520], [12.9982, 77.7564], [13.0150, 77.7500], [13.0320, 77.7350], [13.0450, 77.7120], [13.0550, 77.6880], [13.0650, 77.6550], [13.0850, 77.6200], [13.1150, 77.6050], [13.1450, 77.6100], [13.1750, 77.6400], [13.1986, 77.7066]], stops: ["Whitefield TTMC", "ITPL Main Gate", "Hope Farm Junction", "Hebbal Toll Plaza", "Kempegowda Airport T1"] }
                 ]
             },
             "MUM": {
@@ -537,9 +735,11 @@
                 center: [18.9320, 72.8300],
                 zoom: 14,
                 station: "🚏 CST Station Terminus",
+                nearest: "📍 Churchgate Station South",
+                alert: "Marine Drive Coastal Road Diversion • Route A-115 diverted via Oval Maidan",
                 routes: [
-                    { id: "A-115", name: "ROUTE A-115", dest: "Nariman Point / NCPA", dir: "Southbound Marine Drive Express", busId: "MH-01-DR-1150", status: "ontime", statusText: "On Time", totalMin: 18, totalDist: 4.5, waypoints: [[18.9398, 72.8354], [18.9322, 72.8264], [18.9250, 72.8220]] },
-                    { id: "333", name: "ROUTE 333", dest: "Mahakali Caves Terminal", dir: "Eastbound Andheri Connector", busId: "MH-02-EE-3330", status: "ontime", statusText: "On Time", totalMin: 22, totalDist: 4.8, waypoints: [[19.1197, 72.8464], [19.1240, 72.8550], [19.1310, 72.8680]] }
+                    { id: "A-115", name: "ROUTE A-115", dest: "Nariman Point / NCPA", dir: "Southbound Marine Drive Express", color: "bg-blue", busId: "MH-01-DR-1150", status: "On Time", totalMin: 18, totalDist: 4.5, waypoints: [[18.9398, 72.8354], [18.9370, 72.8330], [18.9350, 72.8310], [18.9322, 72.8264], [18.9350, 72.8235], [18.9380, 72.8210], [18.9450, 72.8180], [18.9500, 72.8150], [18.9420, 72.8150], [18.9320, 72.8180], [18.9270, 72.8200], [18.9250, 72.8220]], stops: ["CST Terminus", "Hutatma Chowk", "Churchgate Station", "Marine Drive", "Nariman Point NCPA"] },
+                    { id: "333", name: "ROUTE 333", dest: "Mahakali Caves Terminal", dir: "Eastbound Andheri Connector", color: "bg-green", busId: "MH-02-EE-3330", status: "On Time", totalMin: 22, totalDist: 4.8, waypoints: [[19.1197, 72.8464], [19.1205, 72.8475], [19.1215, 72.8495], [19.1225, 72.8520], [19.1240, 72.8550], [19.1255, 72.8575], [19.1270, 72.8605], [19.1290, 72.8640], [19.1300, 72.8660], [19.1310, 72.8680]], stops: ["Andheri East Station", "Chakala Metro", "SEEPZ Gate 1", "MIDC Central", "Mahakali Caves Terminal"] }
                 ]
             },
             "DEL": {
@@ -547,9 +747,11 @@
                 center: [28.5800, 77.2400],
                 zoom: 12,
                 station: "🚏 Anand Vihar ISBT Terminal",
+                nearest: "📍 AIIMS Hospital Gate 1 Stop",
+                alert: "VIP Movement at India Gate • Ring Road Route 534 rerouted via Lodhi Road",
                 routes: [
-                    { id: "534", name: "ROUTE 534", dest: "Mehrauli Terminal", dir: "Southbound Ring Road Service", busId: "DL-1PC-5340", status: "ontime", statusText: "On Time", totalMin: 55, totalDist: 24.8, waypoints: [[28.6502, 77.3152], [28.5800, 77.2500], [28.5500, 77.2200], [28.5245, 77.1855]] },
-                    { id: "419", name: "ROUTE 419", dest: "Old Delhi Railway Station", dir: "Northbound Central Corridor", busId: "DL-1PB-4190", status: "delayed", statusText: "Delayed", totalMin: 45, totalDist: 19.5, waypoints: [[28.5150, 77.2300], [28.5800, 77.2300], [28.6600, 77.2300]] }
+                    { id: "534", name: "ROUTE 534", dest: "Mehrauli Terminal", dir: "Southbound Ring Road Service", color: "bg-green", busId: "DL-1PC-5340", status: "On Time", totalMin: 55, totalDist: 24.8, waypoints: [[28.6502, 77.3152], [28.6400, 77.3090], [28.6300, 77.3020], [28.6200, 77.2940], [28.6100, 77.2850], [28.6000, 77.2750], [28.5900, 77.2650], [28.5800, 77.2500], [28.5700, 77.2380], [28.5600, 77.2280], [28.5500, 77.2200], [28.5380, 77.2050], [28.5280, 77.1950], [28.5245, 77.1855]], stops: ["Anand Vihar ISBT", "Ashram Chowk", "Lajpat Nagar Metro", "AIIMS Hospital", "Mehrauli Terminal"] },
+                    { id: "419", name: "ROUTE 419", dest: "Old Delhi Railway Station", dir: "Northbound Central Corridor", color: "bg-amber", busId: "DL-1PB-4190", status: "Delayed", totalMin: 45, totalDist: 19.5, waypoints: [[28.5150, 77.2300], [28.5250, 77.2290], [28.5350, 77.2280], [28.5450, 77.2260], [28.5550, 77.2250], [28.5680, 77.2270], [28.5800, 77.2300], [28.5920, 77.2320], [28.6050, 77.2350], [28.6150, 77.2370], [28.6250, 77.2400], [28.6350, 77.2390], [28.6450, 77.2380], [28.6600, 77.2300]], stops: ["Ambedkar Nagar", "South Extension", "ITO Junction", "Red Fort", "Old Delhi Railway Station"] }
                 ]
             },
             "PUNE": {
@@ -557,8 +759,10 @@
                 center: [18.5600, 73.7900],
                 zoom: 13,
                 station: "🚏 Shivaji Nagar Central Stand",
+                nearest: "📍 Wakad Bridge Highway Stop",
+                alert: "Expressway Maintenance • Route 322 running on 10-minute headway queue",
                 routes: [
-                    { id: "322", name: "ROUTE 322", dest: "Hinjewadi IT Park Phase 3", dir: "Westbound IT Fast Connector", busId: "MH-12-RN-3220", status: "ontime", statusText: "On Time", totalMin: 42, totalDist: 18.2, waypoints: [[18.5308, 73.8475], [18.5520, 73.8050], [18.5850, 73.7500], [18.5913, 73.7389]] }
+                    { id: "322", name: "ROUTE 322", dest: "Hinjewadi IT Park Phase 3", dir: "Westbound IT Fast Connector", color: "bg-green", busId: "MH-12-RN-3220", status: "On Time", totalMin: 42, totalDist: 18.2, waypoints: [[18.5308, 73.8475], [18.5340, 73.8410], [18.5380, 73.8350], [18.5410, 73.8280], [18.5450, 73.8200], [18.5480, 73.8120], [18.5520, 73.8050], [18.5570, 73.7980], [18.5620, 73.7900], [18.5670, 73.7820], [18.5720, 73.7750], [18.5760, 73.7680], [18.5800, 73.7620], [18.5850, 73.7500], [18.5913, 73.7389]], stops: ["Shivaji Nagar Stand", "Aundh Parihar Chowk", "Wakad Bridge", "Hinjewadi Phase 1", "Hinjewadi Phase 3 Circle"] }
                 ]
             }
         };
@@ -579,32 +783,38 @@
 
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // --- 3. UI RENDERING & SWITCHING ---
-        function renderRoutes() {
+        // --- 3. UI RENDERING & PAGE TRANSITIONS ---
+        function renderHome() {
             const hub = transitHubs[currentCity];
-            const grid = document.getElementById('routesGrid');
-            grid.innerHTML = "";
-            
-            document.getElementById('routeCountBadge').innerText = `${hub.routes.length} Routes`;
-            document.getElementById('stationName').innerText = hub.station;
-            document.getElementById('stationBus1').innerText = `🚌 ${hub.routes[0].name} • Arriving in 4 min (${hub.routes[0].statusText})`;
+            document.getElementById('alertText').innerText = hub.alert;
+            document.getElementById('pinnedTitle').innerText = `Pinned Stops (${hub.name})`;
+            document.getElementById('pinnedStopName').innerText = hub.station;
+            document.getElementById('pinnedRoute1').innerText = `🚌 ${hub.routes[0].name} • ${hub.routes[0].dir.take ? hub.routes[0].dir.take(15) : hub.routes[0].dir.slice(0,18)}`;
             if (hub.routes[1]) {
-                document.getElementById('stationBus2').innerText = `🚌 ${hub.routes[1].name} • Arriving in 14 min (${hub.routes[1].statusText})`;
+                document.getElementById('pinnedRoute2').innerText = `🚌 ${hub.routes[1].name} • ${hub.routes[1].dir.slice(0,18)}`;
             } else {
-                document.getElementById('stationBus2').innerText = `🚌 Express Connector • Arriving in 22 min`;
+                document.getElementById('pinnedRoute2').innerText = `🚌 Express Shuttle • IT Corridor`;
             }
 
+            document.getElementById('nearestTitle').innerText = `Nearest Stops (${hub.name})`;
+            document.getElementById('nearestStopName').innerText = hub.nearest;
+            document.getElementById('nearestRoute').innerText = `🚌 ${hub.routes[0].name} • Arriving in 2 mins`;
+
+            const grid = document.getElementById('homeRoutesGrid');
+            grid.innerHTML = "";
             hub.routes.forEach(route => {
-                const isSelected = route.id === activeRoute.id;
                 const card = document.createElement('div');
-                card.className = `route-card ${isSelected ? 'active' : ''}`;
+                card.className = `route-card ${route.color}`;
                 card.onclick = () => selectRoute(route.id);
                 card.innerHTML = `
-                    <div class="route-card-header">
-                        <span class="route-name">${route.name}</span>
-                        <span class="route-status-pill status-${route.status}">${route.statusText}</span>
+                    <div>
+                        <div class="route-card-title">${route.name}</div>
+                        <div class="route-card-sub">${route.dir}</div>
                     </div>
-                    <div class="route-dest">${route.dir} • To <b>${route.dest}</b></div>
+                    <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 12px;">${route.status}</span>
+                        <span style="font-size: 12px; font-weight: 700;">To ${route.dest.slice(0,14)}..</span>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
@@ -615,35 +825,97 @@
             const hub = transitHubs[cityId];
             activeRoute = hub.routes[0];
             map.setView(hub.center, hub.zoom);
-            renderRoutes();
-            startSimulation();
+            renderHome();
+            showHomeView();
+        }
+
+        function showHomeView() {
+            document.getElementById('homeView').className = "panel-view view-active";
+            document.getElementById('trackingView').className = "panel-view view-hidden-right";
+            const hub = transitHubs[currentCity];
+            map.setView(hub.center, hub.zoom);
+            if (routePolyline) map.removeLayer(routePolyline);
+            if (stopMarker) map.removeLayer(stopMarker);
+            busMarkers.forEach(m => map.removeLayer(m));
+            busMarkers = [];
+            if (simInterval) clearInterval(simInterval);
+        }
+
+        function showTrackingView() {
+            document.getElementById('homeView').className = "panel-view view-hidden-left";
+            document.getElementById('trackingView').className = "panel-view view-active";
         }
 
         function selectRoute(routeId) {
             const hub = transitHubs[currentCity];
             activeRoute = hub.routes.find(r => r.id === routeId) || hub.routes[0];
-            renderRoutes();
+            showTrackingView();
             startSimulation();
         }
 
-        function triggerAlert() {
-            alert(`🔔 Arrival Alert Activated for ${activeRoute.name}!\nYou will receive a browser notification when Bus #${activeRoute.busId} is 2 minutes away.`);
+        function selectRouteByIndex(idx) {
+            const hub = transitHubs[currentCity];
+            activeRoute = hub.routes[idx] || hub.routes[0];
+            showTrackingView();
+            startSimulation();
         }
 
-        // --- 4. MULTI-BUS REAL-TIME SIMULATION ---
+        function focusSearch() {
+            const query = prompt("🔍 Search transit routes or stops across " + transitHubs[currentCity].name + ":\n(e.g., '216W', 'Airport', 'Gachibowli')");
+            if (query) {
+                const hub = transitHubs[currentCity];
+                const found = hub.routes.find(r => r.name.toLowerCase().includes(query.toLowerCase()) || r.dest.toLowerCase().includes(query.toLowerCase()) || r.dir.toLowerCase().includes(query.toLowerCase()));
+                if (found) {
+                    selectRoute(found.id);
+                } else {
+                    alert("No matching routes found in " + hub.name + " for '" + query + "'. Try selecting a route from the suggested cards!");
+                }
+            }
+        }
+
+        function filterRoutes(val) {
+            // Live instant filter for grid
+            const cards = document.querySelectorAll('#homeRoutesGrid .route-card');
+            cards.forEach(c => {
+                if (c.innerText.toLowerCase().includes(val.toLowerCase())) {
+                    c.style.display = "flex";
+                } else {
+                    c.style.display = "none";
+                }
+            });
+        }
+
+        function showAdvisory() {
+            alert("🚨 LIVE TRANSIT ADVISORY:\n" + transitHubs[currentCity].alert + "\n\nOur intelligent routing engine has automatically adjusted headway spacing to minimize commuter delays.");
+        }
+
+        function quickNav(type) {
+            if (type === "Home") {
+                alert("🏠 Navigating to saved Home commute shortcut:\nSelecting fastest route from " + transitHubs[currentCity].name + " IT corridor to Residential zone.");
+                selectRouteByIndex(0);
+            } else if (type === "Work") {
+                alert("🏢 Navigating to saved Work commute shortcut:\nTracking morning express shuttles to Business District.");
+                selectRouteByIndex(1 % transitHubs[currentCity].routes.length);
+            } else {
+                alert("+ Add Shortcut:\nYou can save your custom daily boarding and alighting stops in the mobile Android application settings!");
+            }
+        }
+
+        function triggerAlert() {
+            alert(`🔔 Arrival Alert Activated for ${activeRoute.name}!\nYou will receive a browser notification when Bus #${activeRoute.busId} is 2 minutes away from your station.`);
+        }
+
+        // --- 4. MULTI-BUS REAL-TIME SIMULATION & ITINERARY ---
         function startSimulation() {
             if (simInterval) clearInterval(simInterval);
             
-            // Clear old map layers
             if (routePolyline) map.removeLayer(routePolyline);
             if (stopMarker) map.removeLayer(stopMarker);
             busMarkers.forEach(m => map.removeLayer(m));
             busMarkers = [];
 
-            // Draw Road Corridor Polyline
-            routePolyline = L.polyline(activeRoute.waypoints, { color: '#3b82f6', weight: 6, opacity: 0.8 }).addTo(map);
+            routePolyline = L.polyline(activeRoute.waypoints, { color: '#3b82f6', weight: 6, opacity: 0.85 }).addTo(map);
             
-            // Draw Destination Stop Marker
             const destCoord = activeRoute.waypoints[activeRoute.waypoints.length - 1];
             stopMarker = L.marker(destCoord, {
                 icon: L.divIcon({ className: 'custom-bus-marker', html: '📍', iconSize: [32, 32] })
@@ -651,11 +923,20 @@
 
             map.fitBounds(routePolyline.getBounds(), { padding: [80, 80] });
 
-            // Update Header Telemetry
             document.getElementById('activeRouteName').innerText = activeRoute.name;
             document.getElementById('activeRouteDest').innerText = `${activeRoute.dir} • To ${activeRoute.dest}`;
 
-            // Initialize 3 Staggered Buses along Waypoints
+            // Render Itinerary Timeline Stops
+            const stopsDiv = document.getElementById('itineraryStops');
+            stopsDiv.innerHTML = "";
+            activeRoute.stops.forEach((stopName, i) => {
+                const isLast = i === activeRoute.stops.length - 1;
+                const el = document.createElement('div');
+                el.style.cssText = `font-size: 13px; color: ${isLast ? 'var(--success)' : '#fff'}; font-weight: ${isLast ? '700' : '400'}; display: flex; align-items: center; gap: 8px;`;
+                el.innerHTML = `<span>${isLast ? '📍' : '🚏'}</span> <span>${stopName} ${isLast ? '(Boarding Stop)' : ''}</span>`;
+                stopsDiv.appendChild(el);
+            });
+
             let prog1 = 0.65;
             let prog2 = 0.35;
             let prog3 = 0.08;
@@ -664,7 +945,6 @@
             const bus2Id = baseBusId.slice(0, -4) + (parseInt(baseBusId.slice(-4)) + 48 || "4100");
             const bus3Id = baseBusId.slice(0, -4) + (parseInt(baseBusId.slice(-4)) + 170 || "4222");
 
-            // Create markers
             const m1 = L.marker(activeRoute.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟢', iconSize: [28, 28] }) }).addTo(map);
             const m2 = L.marker(activeRoute.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟡', iconSize: [24, 24] }) }).addTo(map);
             const m3 = L.marker(activeRoute.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟡', iconSize: [24, 24] }) }).addTo(map);
@@ -699,11 +979,9 @@
                 m2.setLatLng([b2.lat, b2.lng]).bindPopup(`<b>Following Bus #${bus2Id}</b><br>ETA: ${b2.eta} min`);
                 m3.setLatLng([b3.lat, b3.lng]).bindPopup(`<b>Queue Bus #${bus3Id}</b><br>ETA: ${b3.eta} min`);
 
-                // Update Telemetry Panel (Closest Bus)
                 document.getElementById('etaValue').innerText = b1.eta;
                 document.getElementById('distValue').innerText = b1.dist;
 
-                // Update Queue List
                 document.getElementById('queueList').innerHTML = `
                     <div class="queue-chip primary">🟢 #${baseBusId} • ${b1.eta} min</div>
                     <div class="queue-chip">🟡 #${bus2Id} • ${b2.eta} min</div>
@@ -716,8 +994,7 @@
         }
 
         // Initialize App
-        renderRoutes();
-        startSimulation();
+        renderHome();
     </script>
 </body>
 </html>
