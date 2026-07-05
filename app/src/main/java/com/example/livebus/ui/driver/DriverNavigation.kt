@@ -24,8 +24,7 @@ fun LiveBusAppNavigation(
     val selectedTabIndex = when (currentRoute) {
         "route_selection", "bus_selection", "shift_confirmation" -> 0
         "active_shift" -> 1
-        "incident_log" -> 2
-        "operator_settings" -> 3
+        "operator_settings" -> 2
         else -> 0
     }
 
@@ -36,14 +35,12 @@ fun LiveBusAppNavigation(
     val selectedRouteName by shiftViewModel.selectedRoute.collectAsState()
     val selectedBusId by shiftViewModel.selectedBus.collectAsState()
     val txCount by shiftViewModel.telemetryCount.collectAsState()
-    val incidentLogs by shiftViewModel.incidentLogs.collectAsState()
 
     val title = when (currentRoute) {
         "route_selection" -> "Step 1: Assign Itinerary"
         "bus_selection" -> "Step 2: Assign Fleet ID"
         "shift_confirmation" -> "Pre-Flight Summary"
         "active_shift" -> "Live Telemetry Console"
-        "incident_log" -> "Dispatcher Stream & Log"
         "operator_settings" -> "Operator Configuration"
         "trip_end" -> "Shift Complete"
         else -> "Driver Portal"
@@ -81,12 +78,7 @@ fun LiveBusAppNavigation(
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                            2 -> navController.navigate("incident_log") {
-                                popUpTo("route_selection") { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                            3 -> navController.navigate("operator_settings") {
+                            2 -> navController.navigate("operator_settings") {
                                 popUpTo("route_selection") { saveState = true }
                                 launchSingleTop = true
                                 restoreState = true
@@ -149,10 +141,6 @@ fun LiveBusAppNavigation(
                 )
             }
 
-            composable("incident_log") {
-                IncidentLogScreen(logs = incidentLogs)
-            }
-
             composable("operator_settings") {
                 OperatorSettingsScreen(
                     busId = selectedBusId,
@@ -171,7 +159,6 @@ fun LiveBusAppNavigation(
                             popUpTo("route_selection") { inclusive = true }
                         }
                     },
-                    onViewLogs = { navController.navigate("incident_log") },
                     onSwitchToPassenger = onSwitchToPassenger,
                     onLogout = {
                         navController.navigate("login") {
