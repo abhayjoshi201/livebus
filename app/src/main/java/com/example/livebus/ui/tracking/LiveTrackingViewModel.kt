@@ -70,6 +70,7 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
     }
 
     fun startSimulating() {
+        fetchDirectionsAndStartSimulation()
         viewModelScope.launch {
             var currentSegment = 0
             var progress = 0.0
@@ -99,6 +100,70 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
                 }
             }
         }
+    }
+
+    private fun fetchDirectionsAndStartSimulation() {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val apiKey = com.example.livebus.BuildConfig.MAPS_API_KEY
+                if (apiKey.isNotBlank() && !apiKey.contains("PASTE_YOUR")) {
+                    val urlStr = "https://maps.googleapis.com/maps/api/directions/json?origin=37.7749,-122.4194&destination=37.7833,-122.4167&mode=driving&key=$apiKey"
+                    val url = java.net.URL(urlStr)
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.requestMethod = "GET"
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    if (conn.responseCode == 200) {
+                        val response = conn.inputStream.bufferedReader().use { it.readText() }
+                        val json = JSONObject(response)
+                        val routes = json.optJSONArray("routes")
+                        if (routes != null && routes.length() > 0) {
+                            val overviewPolyline = routes.getJSONObject(0).optJSONObject("overview_polyline")
+                            val pointsStr = overviewPolyline?.optString("points")
+                            if (!pointsStr.isNullOrBlank()) {
+                                val decoded = decodePolyline(pointsStr)
+                                if (decoded.size > 2) {
+                                    _routeWaypoints.value = decoded
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("Directions API fetch error, using default waypoints: ${e.message}")
+            }
+        }
+    }
+
+    private fun decodePolyline(encoded: String): List<LatLng> {
+        val poly = ArrayList<LatLng>()
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
+        while (index < len) {
+            var b: Int
+            var shift = 0
+            var result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or ((b and 0x1f) shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlat = if ((result and 1) != 0) (result shr 1).inv() else (result shr 1)
+            lat += dlat
+            shift = 0
+            result = 0
+            do {
+                b = encoded[index++].code - 63
+                result = result or ((b and 0x1f) shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlng = if ((result and 1) != 0) (result shr 1).inv() else (result shr 1)
+            lng += dlng
+            poly.add(LatLng(lat / 1E5, lng / 1E5))
+        }
+        return poly
     }
 
     private fun connectStomp() {
