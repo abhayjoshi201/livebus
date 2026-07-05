@@ -1,0 +1,32 @@
+// driver login
+curl -s -c driver_cookies.txt -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "ravi", "password": "123"}' 
+
+
+// start trip
+curl -s -X POST http://localhost:8080/api/driver/trips/start \
+     -H "Content-Type: application/json" \
+     -b driver_cookies.txt \
+     -d '{
+           "routeId": "fd4d4858-b281-4d1b-a511-bcc189de2398", 
+           "busId": "ad6b9730-dd9c-4297-94a2-ef8e33d0f516"
+         }'
+
+// update location
+curl -i -X PUT http://localhost:8080/api/driver/trips/location \
+     -H "Content-Type: application/json" \
+     -b driver_cookies.txt \
+     -d '{
+           "latitude": 19.0760, 
+           "longitude": 72.8777
+         }'
+
+// end trip
+curl -i -X POST http://localhost:8080/api/driver/trips/end \
+     -b driver_cookies.txt
+
+
+//driver logout
+curl -s -X POST http://localhost:8080/api/auth/logout \
+     -b driver_cookies.txt

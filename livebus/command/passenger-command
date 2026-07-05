@@ -1,0 +1,19 @@
+//EAT calculation
+curl -s -X GET http://localhost:8080/api/passenger/routes/{routeId}/stops/{stopId}/eta
+
+Search for Routes (by Keyword):
+curl -s -X GET "http://localhost:8080/api/passenger/routes/search?keyword=Express"
+
+//Get All Routes
+curl -s -X GET http://localhost:8080/api/passenger/routes
+
+//Get All Stops for a Specific Route
+curl -s -X GET http://localhost:8080/api/passenger/routes/YOUR_ROUTE_ID/stops
+
+
+//Get Live Bus Locations
+curl -s -X GET http://localhost:8080/api/passenger/routes/YOUR_ROUTE_ID/live
+
+
+// get nearest stop
+curl -s -X GET "http://localhost:8080/api/passenger/stops/nearest?latitude=19.2295&longitude=72.8580" | jq
