@@ -1,7 +1,8 @@
-package com.example.livebus.ui.theme
-
+package com.example.livebus.ui.home
 
 import com.example.livebus.R
+import com.example.livebus.ui.common.BottomNavigationBar
+import com.example.livebus.ui.theme.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -397,54 +398,6 @@ fun NearestStopsSection() {
         }
     }
 }
-
-@Composable
-fun BottomNavigationBar(
-    selectedTabIndex: Int = 0,
-    onHomeClick: () -> Unit = {},
-    onMapClick: () -> Unit = {},
-    onTicketsClick: () -> Unit = {},
-    onAlertsClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
-) {
-    val items = listOf(
-        BottomNavItem("Home", Icons.Default.Home),
-        BottomNavItem("Map", Icons.Default.Map),
-        BottomNavItem("Tickets", Icons.Default.ConfirmationNumber),
-        BottomNavItem("Alerts", Icons.Default.Notifications),
-        BottomNavItem("Settings", Icons.Default.Settings)
-    )
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                icon = { Icon(item.icon, contentDescription = item.title) },
-                label = { Text(item.title) },
-                selected = selectedTabIndex == index,
-                onClick = {
-                    when (item.title) {
-                        "Home" -> onHomeClick()
-                        "Map" -> onMapClick()
-                        "Tickets" -> onTicketsClick()
-                        "Alerts" -> onAlertsClick()
-                        "Settings" -> onSettingsClick()
-                    }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.surface,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-        }
-    }
-}
-
-data class BottomNavItem(val title: String, val icon: ImageVector)
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable

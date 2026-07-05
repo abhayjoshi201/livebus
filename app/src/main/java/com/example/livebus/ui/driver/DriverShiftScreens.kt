@@ -1,4 +1,4 @@
-package com.example.livebus
+package com.example.livebus.ui.driver
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
