@@ -36,6 +36,7 @@ fun LiveTrackingScreen(
             busLocation = busLocation,
             userStopLocation = userStopLocation,
             routeWaypoints = routeWaypoints,
+            locationName = routeDetails.direction,
             modifier = Modifier.fillMaxSize()
         )
 

@@ -44,14 +44,14 @@ class LiveTrackingViewModel @Inject constructor(
     private val _routeWaypoints = MutableStateFlow(transitRepository.getActiveRoute()?.waypoints ?: emptyList())
     val routeWaypoints: StateFlow<List<LatLng>> = _routeWaypoints.asStateFlow()
 
-    private val _userStopLocation = MutableStateFlow(transitRepository.getActiveRoute()?.userStopLocation ?: LatLng(17.4455, 78.3489))
+    private val _userStopLocation = MutableStateFlow(transitRepository.getActiveRoute()?.userStopLocation ?: transitRepository.getSelectedCity().centerLatLng)
     val userStopLocation: StateFlow<LatLng> = _userStopLocation.asStateFlow()
 
     private val _routeDetails = MutableStateFlow(
         RouteDetails(
             routeName = transitRepository.getActiveRoute()?.displayName ?: "No Route Selected",
             destination = transitRepository.getActiveRoute()?.destination ?: "Pick from Plan Trip",
-            direction = transitRepository.getActiveRoute()?.direction ?: "Hyderabad IT Corridor"
+            direction = transitRepository.getActiveRoute()?.direction ?: "${transitRepository.getSelectedCity().name} (${transitRepository.getSelectedCity().defaultLocationName})"
         )
     )
     val routeDetails: StateFlow<RouteDetails> = _routeDetails.asStateFlow()
@@ -71,8 +71,12 @@ class LiveTrackingViewModel @Inject constructor(
     init {
         stompClient.connect()
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
-            transitRepository.activeRouteId.collect {
-                val route = transitRepository.getActiveRoute()
+            kotlinx.coroutines.flow.combine(
+                transitRepository.activeRouteId,
+                transitRepository.selectedCityId
+            ) { routeId, cityId ->
+                Pair(transitRepository.getActiveRoute(), transitRepository.getSelectedCity())
+            }.collect { (route, city) ->
                 if (route != null) {
                     _busLocation.value = route.initialBusLocation
                     _userStopLocation.value = route.userStopLocation
@@ -86,11 +90,12 @@ class LiveTrackingViewModel @Inject constructor(
                     startSimulating()
                 } else {
                     _busLocation.value = null
+                    _userStopLocation.value = city.centerLatLng
                     _routeWaypoints.value = emptyList()
                     _routeDetails.value = RouteDetails(
                         routeName = "No Route Selected",
                         destination = "Pick from Plan Trip",
-                        direction = "Hyderabad IT Corridor"
+                        direction = "${city.name} (${city.defaultLocationName})"
                     )
                     routeDisposable?.dispose()
                     simulationJob?.cancel()

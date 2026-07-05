@@ -26,6 +26,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.CheckCircle
+import com.example.livebus.data.TransitCity
+import com.example.livebus.data.TransitRoute
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,6 +50,10 @@ import androidx.compose.foundation.clickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    allCities: List<TransitCity> = emptyList(),
+    onCitySelect: (String) -> Unit = {},
+    availableRoutes: List<TransitRoute> = emptyList(),
     onRouteClick: (String) -> Unit = {},
     onMapClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
@@ -58,7 +66,79 @@ fun HomeScreen(
             initialValue = SheetValue.Expanded
         )
     )
-    var showLiveCommuteWidget by remember { mutableStateOf(false) } // Placeholder for live commute logic
+    var showLiveCommuteWidget by remember { mutableStateOf(false) }
+    var showCitySheet by remember { mutableStateOf(false) }
+
+    if (showCitySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCitySheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Select Transit Metro Hub",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Switching hubs updates live routes, stops, and map GPS boundaries.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                allCities.forEach { city ->
+                    val isSelected = city.id == selectedCity.id
+                    val bg = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(bg)
+                            .clickable {
+                                onCitySelect(city.id)
+                                showCitySheet = false
+                            }
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "📍 ${city.name} • ${city.agencyName}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = contentColor
+                            )
+                            Text(
+                                text = city.fullAgencyTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = contentColor.copy(alpha = 0.8f)
+                            )
+                        }
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
 
     BottomSheetScaffold(
         scaffoldState = sheetState,
@@ -83,6 +163,62 @@ fun HomeScreen(
                         .background(MaterialTheme.colorScheme.surface),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // City Selector Header Pill
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "National Transit Network",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(50))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                                    .clickable { showCitySheet = true }
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "📍 ${selectedCity.name} • ${selectedCity.agencyName}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Select City",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🇮🇳 5 Metro Hubs",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
                     SearchBarSection(onSearchClick = onSearchClick)
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -97,13 +233,13 @@ fun HomeScreen(
                     QuickCommuteButtonsSection()
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    FavoriteRoutesSection(onRouteClick = onRouteClick)
+                    FavoriteRoutesSection(routes = availableRoutes, onRouteClick = onRouteClick)
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    PinnedStopsSection()
+                    PinnedStopsSection(selectedCity = selectedCity, routes = availableRoutes)
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    NearestStopsSection()
+                    NearestStopsSection(selectedCity = selectedCity, routes = availableRoutes)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -273,7 +409,10 @@ fun QuickCommuteButtonsSection() {
 }
 
 @Composable
-fun FavoriteRoutesSection(onRouteClick: (String) -> Unit = {}) {
+fun FavoriteRoutesSection(
+    routes: List<TransitRoute> = emptyList(),
+    onRouteClick: (String) -> Unit = {}
+) {
     val isDarkTheme = isSystemInDarkTheme()
     val onTimeColor = if (isDarkTheme) DarkGreen else LightGreen
     val minorDelayColor = if (isDarkTheme) DarkAmber else LightAmber
@@ -285,7 +424,7 @@ fun FavoriteRoutesSection(onRouteClick: (String) -> Unit = {}) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Favorite Routes",
+                text = "Suggested Routes",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -293,25 +432,26 @@ fun FavoriteRoutesSection(onRouteClick: (String) -> Unit = {}) {
             Icon(Icons.Default.ChevronRight, contentDescription = "See All", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(modifier = Modifier.height(12.dp))
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(end = 16.dp)
-        ) {
-            items(2) { index ->
-                RouteCard(
-                    routeName = "ROUTE 216W",
-                    destination = "IIIT Gachibowli",
-                    statusColor = onTimeColor,
-                    onClick = { onRouteClick("216W") }
-                )
-            }
-            item {
-                RouteCard(
-                    routeName = "ROUTE 219",
-                    destination = "Patancheru",
-                    statusColor = minorDelayColor,
-                    onClick = { onRouteClick("219") }
-                )
+        if (routes.isEmpty()) {
+            Text(
+                text = "No routes available for this metro hub.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(end = 16.dp)
+            ) {
+                items(routes.size) { index ->
+                    val route = routes[index]
+                    RouteCard(
+                        routeName = route.routeName,
+                        destination = route.destination.take(16),
+                        statusColor = if (index % 2 == 0) onTimeColor else minorDelayColor,
+                        onClick = { onRouteClick(route.routeId) }
+                    )
+                }
             }
         }
     }
@@ -349,10 +489,17 @@ fun RouteCard(routeName: String, destination: String, statusColor: Color, onClic
 }
 
 @Composable
-fun PinnedStopsSection() {
+fun PinnedStopsSection(
+    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    routes: List<TransitRoute> = emptyList()
+) {
+    val firstStop = routes.firstOrNull()?.stops?.firstOrNull()?.name ?: "${selectedCity.name} Central Depot"
+    val firstRoute = routes.firstOrNull()?.routeId ?: "EXPRESS"
+    val secondRoute = routes.getOrNull(1)?.routeId ?: "LOCAL"
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Pinned Stops",
+            text = "Pinned Stops (${selectedCity.name})",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -365,21 +512,27 @@ fun PinnedStopsSection() {
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("🚏 Mehdipatnam Bus Depot", fontWeight = FontWeight.Medium)
+                Text("🚏 $firstStop", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("🚌 216W  Arriving in 5 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 $firstRoute  Arriving in 5 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("🚌 219  Arriving in 12 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 $secondRoute  Arriving in 12 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
 
 @Composable
-fun NearestStopsSection() {
+fun NearestStopsSection(
+    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    routes: List<TransitRoute> = emptyList()
+) {
+    val secondStop = routes.firstOrNull()?.stops?.getOrNull(1)?.name ?: "${selectedCity.name} IT Junction"
+    val firstRoute = routes.firstOrNull()?.routeId ?: "EXPRESS"
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Nearest Stops",
+            text = "Nearest Stops around ${selectedCity.defaultLocationName.take(20)}",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -392,9 +545,9 @@ fun NearestStopsSection() {
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("📍 Tolichowki X Roads (0.2 km)", fontWeight = FontWeight.Medium)
+                Text("📍 $secondStop (0.2 km)", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("🚌 47L   Arriving in 2 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 $firstRoute   Arriving in 2 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -403,6 +556,5 @@ fun NearestStopsSection() {
 @Preview(showBackground = true, widthDp = 360, heightDp = 720)
 @Composable
 fun HomeScreenPreview() {
-    // Wrap in a theme if you have one
     HomeScreen()
 }

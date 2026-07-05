@@ -36,6 +36,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settingsViewModel: SettingsViewModel = hiltViewModel()
             val settingsState by settingsViewModel.uiState.collectAsState()
+            val selectedCityId by transitRepository.selectedCityId.collectAsState()
+            val selectedCity = remember(selectedCityId) { transitRepository.getSelectedCity() }
+            val availableRoutes = remember(selectedCityId) { transitRepository.getRoutesForCurrentCity() }
 
             LiveBusTheme(themeOption = settingsState.themeOption) {
                 var appMode by remember { mutableStateOf("passenger") }
@@ -84,6 +87,10 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { currentScreen = "itinerary" }
                         )
                         else -> HomeScreen(
+                            selectedCity = selectedCity,
+                            allCities = transitRepository.allCities,
+                            onCitySelect = { cityId -> transitRepository.selectCity(cityId) },
+                            availableRoutes = availableRoutes,
                             onRouteClick = { routeId ->
                                 transitRepository.selectRoute(routeId)
                                 currentScreen = "itinerary"

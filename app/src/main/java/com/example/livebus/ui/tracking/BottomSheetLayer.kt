@@ -82,7 +82,7 @@ fun BottomSheetLayer(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "📍 Your Location: Hyderabad IT Corridor",
+                        text = "📍 Your Location: ${routeDetails.direction}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface

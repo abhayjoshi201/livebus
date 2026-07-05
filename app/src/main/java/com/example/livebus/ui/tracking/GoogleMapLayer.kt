@@ -15,6 +15,7 @@ fun GoogleMapLayer(
     busLocation: LatLng?,
     userStopLocation: LatLng,
     routeWaypoints: List<LatLng> = emptyList(),
+    locationName: String = "Hyderabad IT Corridor",
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
@@ -75,7 +76,7 @@ fun GoogleMapLayer(
         // User Location Marker
         Marker(
             state = MarkerState(position = stopLatLng),
-            title = if (busLatLng != null) "User Stop: IIIT Gachibowli Campus" else "Your Location: Hyderabad IT Corridor",
+            title = if (busLatLng != null) "User Stop: $locationName" else "Your Location: $locationName",
             snippet = if (busLatLng != null) "Assigned Boarding Location" else "Select a route from Plan Trip to view buses",
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
         )
