@@ -84,10 +84,11 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { currentScreen = "itinerary" }
                         )
                         else -> HomeScreen(
-                            onNavigateToTracking = { routeId ->
+                            onRouteClick = { routeId ->
                                 transitRepository.selectRoute(routeId)
                                 currentScreen = "itinerary"
                             },
+                            onMapClick = { currentScreen = "tracking" },
                             onSearchClick = { currentScreen = "search" },
                             onTicketsClick = { currentScreen = "tickets" },
                             onAlertsClick = { currentScreen = "alerts" },

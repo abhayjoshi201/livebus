@@ -46,7 +46,8 @@ import androidx.compose.foundation.clickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToTracking: (String) -> Unit = {},
+    onRouteClick: (String) -> Unit = {},
+    onMapClick: () -> Unit = {},
     onSearchClick: () -> Unit = {},
     onTicketsClick: () -> Unit = {},
     onAlertsClick: () -> Unit = {},
@@ -67,7 +68,7 @@ fun HomeScreen(
                     BottomNavigationBar(
                         selectedTabIndex = 0,
                         onHomeClick = {},
-                        onMapClick = { onNavigateToTracking("216W") },
+                        onMapClick = onMapClick,
                         onTicketsClick = onTicketsClick,
                         onAlertsClick = onAlertsClick,
                         onSettingsClick = onSettingsClick
@@ -96,7 +97,7 @@ fun HomeScreen(
                     QuickCommuteButtonsSection()
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    FavoriteRoutesSection(onRouteClick = onNavigateToTracking)
+                    FavoriteRoutesSection(onRouteClick = onRouteClick)
                     Spacer(modifier = Modifier.height(24.dp))
 
                     PinnedStopsSection()
