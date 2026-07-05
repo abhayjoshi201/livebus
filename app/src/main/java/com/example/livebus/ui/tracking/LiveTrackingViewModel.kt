@@ -28,6 +28,14 @@ data class RouteDetails(
     val direction: String = "Westbound"
 )
 
+data class ActiveBus(
+    val busId: String,
+    val location: LatLng,
+    val etaMinutes: Int,
+    val distanceKm: Double,
+    val status: BusStatus
+)
+
 @HiltViewModel
 class LiveTrackingViewModel @Inject constructor(
     private val transitRepository: TransitRepository
@@ -37,6 +45,9 @@ class LiveTrackingViewModel @Inject constructor(
     private val compositeDisposable = CompositeDisposable()
     private var routeDisposable: Disposable? = null
     private var simulationJob: Job? = null
+
+    private val _activeBuses = MutableStateFlow<List<ActiveBus>>(emptyList())
+    val activeBuses: StateFlow<List<ActiveBus>> = _activeBuses.asStateFlow()
 
     private val _busLocation = MutableStateFlow<LatLng?>(transitRepository.getActiveRoute()?.initialBusLocation)
     val busLocation: StateFlow<LatLng?> = _busLocation.asStateFlow()
@@ -92,6 +103,7 @@ class LiveTrackingViewModel @Inject constructor(
                     _busLocation.value = null
                     _userStopLocation.value = city.centerLatLng
                     _routeWaypoints.value = emptyList()
+                    _activeBuses.value = emptyList()
                     _routeDetails.value = RouteDetails(
                         routeName = "No Route Selected",
                         destination = "Pick from Plan Trip",
@@ -109,31 +121,47 @@ class LiveTrackingViewModel @Inject constructor(
         val activeRoute = transitRepository.getActiveRoute() ?: return
         fetchDirectionsForActiveRoute(activeRoute)
         simulationJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
-            var currentSegment = 0
-            var progress = 0.0
+            val baseBusId = activeRoute.busId
+            val bus2Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(48) ?: "4100") else "${baseBusId}-B2"
+            val bus3Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(170) ?: "4222") else "${baseBusId}-B3"
+
+            var seg1 = 0; var prog1 = 0.6
+            var seg2 = 0; var prog2 = 0.3
+            var seg3 = 0; var prog3 = 0.05
+
             while (true) {
                 kotlinx.coroutines.delay(1200)
                 val waypoints = _routeWaypoints.value
-                if (waypoints.size >= 2 && currentSegment < waypoints.size - 1) {
-                    val currentStart = waypoints[currentSegment]
-                    val currentEnd = waypoints[kotlin.math.min(currentSegment + 1, waypoints.size - 1)]
-                    progress += 0.25
-                    if (progress >= 1.0) {
-                        progress = 0.0
-                        currentSegment++
-                        if (currentSegment >= waypoints.size - 1) {
-                            currentSegment = 0
-                        }
-                    }
-                    val activeStart = waypoints[currentSegment]
-                    val activeEnd = waypoints[kotlin.math.min(currentSegment + 1, waypoints.size - 1)]
-                    val newLat = activeStart.latitude + (activeEnd.latitude - activeStart.latitude) * progress
-                    val newLon = activeStart.longitude + (activeEnd.longitude - activeStart.longitude) * progress
-                    _busLocation.value = LatLng(newLat, newLon)
+                if (waypoints.size >= 2) {
+                    val maxSeg = waypoints.size - 1
 
-                    val remainingSegments = (waypoints.size - 1 - currentSegment).coerceAtLeast(1)
-                    _eta.value = remainingSegments
-                    _distance.value = kotlin.math.round((remainingSegments * 0.24) * 10) / 10.0
+                    // Update Bus 1 (Primary / Closest)
+                    prog1 += 0.25; if (prog1 >= 1.0) { prog1 = 0.0; seg1 = (seg1 + 1) % maxSeg }
+                    val s1 = waypoints[seg1]; val e1 = waypoints[kotlin.math.min(seg1 + 1, maxSeg)]
+                    val loc1 = LatLng(s1.latitude + (e1.latitude - s1.latitude) * prog1, s1.longitude + (e1.longitude - s1.longitude) * prog1)
+                    val rem1 = (maxSeg - seg1).coerceAtLeast(1)
+
+                    // Update Bus 2 (Following)
+                    prog2 += 0.20; if (prog2 >= 1.0) { prog2 = 0.0; seg2 = (seg2 + 1) % maxSeg }
+                    val s2 = waypoints[seg2]; val e2 = waypoints[kotlin.math.min(seg2 + 1, maxSeg)]
+                    val loc2 = LatLng(s2.latitude + (e2.latitude - s2.latitude) * prog2, s2.longitude + (e2.longitude - s2.longitude) * prog2)
+                    val rem2 = rem1 + 9
+
+                    // Update Bus 3 (Queue)
+                    prog3 += 0.18; if (prog3 >= 1.0) { prog3 = 0.0; seg3 = (seg3 + 1) % maxSeg }
+                    val s3 = waypoints[seg3]; val e3 = waypoints[kotlin.math.min(seg3 + 1, maxSeg)]
+                    val loc3 = LatLng(s3.latitude + (e3.latitude - s3.latitude) * prog3, s3.longitude + (e3.longitude - s3.longitude) * prog3)
+                    val rem3 = rem2 + 11
+
+                    val b1 = ActiveBus(baseBusId, loc1, rem1, kotlin.math.round((rem1 * 0.24) * 10) / 10.0, BusStatus.ON_TIME)
+                    val b2 = ActiveBus(bus2Id, loc2, rem2, kotlin.math.round((rem2 * 0.24) * 10) / 10.0, BusStatus.DELAYED)
+                    val b3 = ActiveBus(bus3Id, loc3, rem3, kotlin.math.round((rem3 * 0.24) * 10) / 10.0, BusStatus.ON_TIME)
+
+                    val list = listOf(b1, b2, b3).sortedBy { it.etaMinutes }
+                    _activeBuses.value = list
+                    _busLocation.value = list.firstOrNull()?.location
+                    _eta.value = list.firstOrNull()?.etaMinutes ?: rem1
+                    _distance.value = list.firstOrNull()?.distanceKm ?: 1.2
                 }
             }
         }
@@ -225,10 +253,25 @@ class LiveTrackingViewModel @Inject constructor(
             val json = JSONObject(payload)
             val lat = json.getDouble("latitude")
             val lon = json.getDouble("longitude")
-            _busLocation.value = LatLng(lat, lon)
-            if (json.has("eta")) _eta.value = json.getInt("eta")
-            if (json.has("distance")) _distance.value = json.getDouble("distance")
-            if (json.has("status")) _busStatus.value = BusStatus.valueOf(json.getString("status"))
+            val busId = json.optString("busId", transitRepository.getActiveRoute()?.busId ?: "TG-09-Z-4052")
+            val eta = if (json.has("eta")) json.getInt("eta") else _eta.value
+            val dist = if (json.has("distance")) json.getDouble("distance") else _distance.value
+            val status = if (json.has("status")) BusStatus.valueOf(json.getString("status")) else BusStatus.ON_TIME
+
+            val currentList = _activeBuses.value.toMutableList()
+            val index = currentList.indexOfFirst { it.busId == busId }
+            val newBus = ActiveBus(busId, LatLng(lat, lon), eta, dist, status)
+            if (index >= 0) {
+                currentList[index] = newBus
+            } else {
+                currentList.add(newBus)
+            }
+            val sortedList = currentList.sortedBy { it.etaMinutes }
+            _activeBuses.value = sortedList
+            _busLocation.value = sortedList.firstOrNull()?.location ?: LatLng(lat, lon)
+            _eta.value = sortedList.firstOrNull()?.etaMinutes ?: eta
+            _distance.value = sortedList.firstOrNull()?.distanceKm ?: dist
+            _busStatus.value = sortedList.firstOrNull()?.status ?: status
         } catch (e: Exception) {
             println("Error parsing STOMP payload: ${e.message}")
         }
