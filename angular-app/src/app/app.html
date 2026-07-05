@@ -1,0 +1,186 @@
+<!-- Header / Navbar -->
+<header>
+  <div class="logo-area" (click)="showHomeView()">
+    <div class="logo-icon">🚍</div>
+    <h1 class="logo-title">LiveBus National Portal</h1>
+  </div>
+  <div class="city-switcher">
+    <div class="hub-badge">🇮🇳 5 Metro Hubs Active</div>
+    <select [value]="currentCity()" (change)="onCityChange($event)" class="city-select">
+      <option value="HYD">📍 Hyderabad • TGSRTC</option>
+      <option value="BLR">📍 Bengaluru • BMTC</option>
+      <option value="MUM">📍 Mumbai • BEST</option>
+      <option value="DEL">📍 Delhi-NCR • DTC</option>
+      <option value="PUNE">📍 Pune • PMPML</option>
+    </select>
+  </div>
+</header>
+
+<!-- Main Workspace -->
+<main>
+  <!-- Left Side Sliding Panels (Mimicking Android ModalBottomSheet / Screens) -->
+  <aside class="sidebar-container">
+    
+    <!-- VIEW 1: HOME OVERVIEW (Default) -->
+    <div [class]="isTrackingView() ? 'panel-view view-hidden-left' : 'panel-view view-active'">
+      <!-- Search Bar (No popup dialog!) -->
+      <div class="search-box">
+        <span>🔍</span>
+        <input 
+          #searchInput
+          type="text" 
+          class="search-input" 
+          placeholder="Search routes, stops, or bus numbers..." 
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)">
+      </div>
+
+      <!-- Service Alerts Banner -->
+      <div class="alert-banner" (click)="showAdvisory()">
+        <span style="font-size: 20px;">⚠️</span>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff;">{{ activeHub().alert }}</div>
+          <div style="font-size: 11px; color: rgba(255,255,255,0.8);">Tap to view traffic advisories & reroutes</div>
+        </div>
+      </div>
+
+      <!-- Quick Commute Buttons -->
+      <div class="quick-chips">
+        <div class="commute-chip" (click)="quickNav('Home')">🏠 Home</div>
+        <div class="commute-chip" (click)="quickNav('Work')">🏢 Work</div>
+        <div class="commute-chip" (click)="quickNav('Shortcut')">+ Add Shortcut</div>
+      </div>
+
+      <!-- Suggested Routes Section -->
+      <div>
+        <div class="section-header">
+          <span class="section-title">Suggested Routes</span>
+          <span class="see-all-btn" (click)="focusSearchInput()">See All ></span>
+        </div>
+        <div class="routes-grid">
+          @for (route of filteredRoutes(); track route.id) {
+            <div class="route-card" [ngClass]="route.color" (click)="selectRoute(route)">
+              <div>
+                <div class="route-card-title">{{ route.name }}</div>
+                <div class="route-card-sub">{{ route.dir }}</div>
+              </div>
+              <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 12px;">{{ route.status }}</span>
+                <span style="font-size: 12px; font-weight: 700;">To {{ route.dest.slice(0, 14) }}..</span>
+              </div>
+            </div>
+          } @empty {
+            <div style="grid-column: span 2; padding: 20px; text-align: center; color: var(--text-muted);">
+              No matching routes found for '{{ searchQuery() }}'.
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Pinned Stops Section -->
+      <div>
+        <div class="section-header">
+          <span class="section-title">Pinned Stops ({{ activeHub().name }})</span>
+        </div>
+        <div class="stop-card" (click)="selectRouteByIndex(0)">
+          <div class="stop-name">🚏 {{ activeHub().station }}</div>
+          <div class="stop-row">
+            <span>🚌 {{ activeHub().routes[0].name }}</span>
+            <span class="stop-time">Arriving in 5 min</span>
+          </div>
+          @if (activeHub().routes.length > 1) {
+            <div class="stop-row">
+              <span>🚌 {{ activeHub().routes[1].name }}</span>
+              <span style="color: var(--warning); font-weight: 600;">Arriving in 14 min</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Nearest Stops Section -->
+      <div>
+        <div class="section-header">
+          <span class="section-title">Nearest Stops (0.2 km)</span>
+        </div>
+        <div class="stop-card" (click)="selectRouteByIndex(0)">
+          <div class="stop-name">{{ activeHub().nearest }}</div>
+          <div class="stop-row">
+            <span>🚌 {{ activeHub().routes[0].name }} • Westbound Express</span>
+            <span class="stop-time">2 min away</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: LIVE TRACKING ITINERARY (Slides in when route is selected) -->
+    <div [class]="isTrackingView() ? 'panel-view view-active' : 'panel-view view-hidden-right'">
+      <button class="back-btn" (click)="showHomeView()">
+        <span>←</span> Back to All Routes
+      </button>
+
+      <!-- Active Route Telemetry Card -->
+      <div class="telemetry-panel">
+        <div class="telemetry-header">
+          <div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: #fff;">{{ activeRoute().name }}</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">{{ activeRoute().dir }} • To {{ activeRoute().dest }}</p>
+          </div>
+          <div class="live-pulse">
+            <div class="pulse-dot"></div>
+            <span>LIVE</span>
+          </div>
+        </div>
+
+        <div class="telemetry-stats">
+          <div class="stat-box">
+            <span class="stat-label">Estimated Arrival</span>
+            <div>
+              <span class="stat-value">{{ etaValue() }}</span>
+              <span class="stat-unit"> min</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Remaining Dist</span>
+            <div>
+              <span class="stat-value">{{ distValue() }}</span>
+              <span class="stat-unit"> km</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Headway Queue -->
+        <div>
+          <span class="stat-label" style="display: block; margin-bottom: 8px;">Upcoming Arrivals Queue</span>
+          <div class="queue-list">
+            @for (item of queueList(); track item.busId) {
+              <div class="queue-chip" [class.primary]="item.isPrimary">
+                {{ item.icon }} {{ item.busId }} • {{ item.eta }} min
+              </div>
+            }
+          </div>
+        </div>
+
+        <button class="action-btn" (click)="triggerAlert()">
+          <span>🔔</span> Set Arrival Alert Notification
+        </button>
+      </div>
+
+      <!-- Stop Timeline / Itinerary List -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 18px;">
+        <span class="stat-label" style="display: block; margin-bottom: 12px;">Route Corridor Stops</span>
+        <div style="display: flex; flex-direction: column; gap: 14px; position: relative; padding-left: 12px;">
+          @for (stop of activeRoute().stops; track stop; let last = $last) {
+            <div [style.color]="last ? 'var(--success)' : '#fff'" [style.font-weight]="last ? '700' : '400'" style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
+              <span>{{ last ? '📍' : '🚏' }}</span>
+              <span>{{ stop }} {{ last ? '(Boarding Stop)' : '' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- Interactive Map -->
+  <div id="map"></div>
+</main>
