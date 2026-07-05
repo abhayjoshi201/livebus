@@ -1,7 +1,7 @@
 spring:
   datasource:
    
-    url: jdbc:postgresql://localhost:5432/livebus
+    url: jdbc:postgresql://localhost:5433/livebus
     username: admin
     password: root
     driver-class-name: org.postgresql.Driver
