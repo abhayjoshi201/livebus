@@ -125,6 +125,9 @@ class LiveTrackingViewModel @Inject constructor(
             val bus2Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(48) ?: "4100") else "${baseBusId}-B2"
             val bus3Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(170) ?: "4222") else "${baseBusId}-B3"
 
+            val totalMinutes = activeRoute.stops.lastOrNull()?.estimatedMinutesFromStart ?: 25
+            val totalDistance = activeRoute.stops.lastOrNull()?.distanceKm ?: 12.0
+
             var seg1 = 0; var prog1 = 0.6
             var seg2 = 0; var prog2 = 0.3
             var seg3 = 0; var prog3 = 0.05
@@ -139,29 +142,33 @@ class LiveTrackingViewModel @Inject constructor(
                     prog1 += 0.25; if (prog1 >= 1.0) { prog1 = 0.0; seg1 = (seg1 + 1) % maxSeg }
                     val s1 = waypoints[seg1]; val e1 = waypoints[kotlin.math.min(seg1 + 1, maxSeg)]
                     val loc1 = LatLng(s1.latitude + (e1.latitude - s1.latitude) * prog1, s1.longitude + (e1.longitude - s1.longitude) * prog1)
-                    val rem1 = (maxSeg - seg1).coerceAtLeast(1)
+                    val ratio1 = (1.0 - (seg1 + prog1) / maxSeg).coerceIn(0.04, 1.0)
+                    val rem1 = kotlin.math.max(1, kotlin.math.round(ratio1 * totalMinutes).toInt())
+                    val dist1 = kotlin.math.round((ratio1 * totalDistance) * 10) / 10.0
 
                     // Update Bus 2 (Following)
                     prog2 += 0.20; if (prog2 >= 1.0) { prog2 = 0.0; seg2 = (seg2 + 1) % maxSeg }
                     val s2 = waypoints[seg2]; val e2 = waypoints[kotlin.math.min(seg2 + 1, maxSeg)]
                     val loc2 = LatLng(s2.latitude + (e2.latitude - s2.latitude) * prog2, s2.longitude + (e2.longitude - s2.longitude) * prog2)
                     val rem2 = rem1 + 9
+                    val dist2 = kotlin.math.round((dist1 + 3.2) * 10) / 10.0
 
                     // Update Bus 3 (Queue)
                     prog3 += 0.18; if (prog3 >= 1.0) { prog3 = 0.0; seg3 = (seg3 + 1) % maxSeg }
                     val s3 = waypoints[seg3]; val e3 = waypoints[kotlin.math.min(seg3 + 1, maxSeg)]
                     val loc3 = LatLng(s3.latitude + (e3.latitude - s3.latitude) * prog3, s3.longitude + (e3.longitude - s3.longitude) * prog3)
                     val rem3 = rem2 + 11
+                    val dist3 = kotlin.math.round((dist2 + 4.1) * 10) / 10.0
 
-                    val b1 = ActiveBus(baseBusId, loc1, rem1, kotlin.math.round((rem1 * 0.24) * 10) / 10.0, BusStatus.ON_TIME)
-                    val b2 = ActiveBus(bus2Id, loc2, rem2, kotlin.math.round((rem2 * 0.24) * 10) / 10.0, BusStatus.DELAYED)
-                    val b3 = ActiveBus(bus3Id, loc3, rem3, kotlin.math.round((rem3 * 0.24) * 10) / 10.0, BusStatus.ON_TIME)
+                    val b1 = ActiveBus(baseBusId, loc1, rem1, dist1, BusStatus.ON_TIME)
+                    val b2 = ActiveBus(bus2Id, loc2, rem2, dist2, BusStatus.DELAYED)
+                    val b3 = ActiveBus(bus3Id, loc3, rem3, dist3, BusStatus.ON_TIME)
 
                     val list = listOf(b1, b2, b3).sortedBy { it.etaMinutes }
                     _activeBuses.value = list
                     _busLocation.value = list.firstOrNull()?.location
                     _eta.value = list.firstOrNull()?.etaMinutes ?: rem1
-                    _distance.value = list.firstOrNull()?.distanceKm ?: 1.2
+                    _distance.value = list.firstOrNull()?.distanceKm ?: dist1
                 }
             }
         }
