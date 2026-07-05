@@ -30,8 +30,8 @@ fun LiveTrackingScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Z-Index 0: Map Layer
-        MapLibreLayer(
+        // Z-Index 0: Google Maps Platform Layer
+        GoogleMapLayer(
             busLocation = busLocation,
             userStopLocation = userStopLocation,
             modifier = Modifier.fillMaxSize()
