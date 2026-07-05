@@ -233,13 +233,25 @@ fun HomeScreen(
                     QuickCommuteButtonsSection()
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    FavoriteRoutesSection(routes = availableRoutes, onRouteClick = onRouteClick)
+                    FavoriteRoutesSection(
+                        routes = availableRoutes,
+                        onRouteClick = onRouteClick,
+                        onSeeAllClick = onSearchClick
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    PinnedStopsSection(selectedCity = selectedCity, routes = availableRoutes)
+                    PinnedStopsSection(
+                        selectedCity = selectedCity,
+                        routes = availableRoutes,
+                        onStopClick = onRouteClick
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    NearestStopsSection(selectedCity = selectedCity, routes = availableRoutes)
+                    NearestStopsSection(
+                        selectedCity = selectedCity,
+                        routes = availableRoutes,
+                        onStopClick = onRouteClick
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -411,7 +423,8 @@ fun QuickCommuteButtonsSection() {
 @Composable
 fun FavoriteRoutesSection(
     routes: List<TransitRoute> = emptyList(),
-    onRouteClick: (String) -> Unit = {}
+    onRouteClick: (String) -> Unit = {},
+    onSeeAllClick: () -> Unit = {}
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val onTimeColor = if (isDarkTheme) DarkGreen else LightGreen
@@ -419,7 +432,11 @@ fun FavoriteRoutesSection(
 
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onSeeAllClick() }
+                .padding(vertical = 6.dp, horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -429,7 +446,20 @@ fun FavoriteRoutesSection(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Icon(Icons.Default.ChevronRight, contentDescription = "See All", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "See All",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = "See All Routes",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
         if (routes.isEmpty()) {
@@ -491,7 +521,8 @@ fun RouteCard(routeName: String, destination: String, statusColor: Color, onClic
 @Composable
 fun PinnedStopsSection(
     selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
-    routes: List<TransitRoute> = emptyList()
+    routes: List<TransitRoute> = emptyList(),
+    onStopClick: (String) -> Unit = {}
 ) {
     val firstStop = routes.firstOrNull()?.stops?.firstOrNull()?.name ?: "${selectedCity.name} Central Depot"
     val firstRoute = routes.firstOrNull()?.routeId ?: "EXPRESS"
@@ -506,7 +537,9 @@ fun PinnedStopsSection(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onStopClick(firstRoute) },
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -525,7 +558,8 @@ fun PinnedStopsSection(
 @Composable
 fun NearestStopsSection(
     selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
-    routes: List<TransitRoute> = emptyList()
+    routes: List<TransitRoute> = emptyList(),
+    onStopClick: (String) -> Unit = {}
 ) {
     val secondStop = routes.firstOrNull()?.stops?.getOrNull(1)?.name ?: "${selectedCity.name} IT Junction"
     val firstRoute = routes.firstOrNull()?.routeId ?: "EXPRESS"
@@ -539,7 +573,9 @@ fun NearestStopsSection(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onStopClick(firstRoute) },
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
