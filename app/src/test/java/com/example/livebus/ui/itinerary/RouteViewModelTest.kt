@@ -11,7 +11,9 @@ class RouteViewModelTest {
 
     @Before
     fun setup() {
-        viewModel = RouteViewModel()
+        val repo = com.example.livebus.data.TransitRepository()
+        repo.selectRoute("216W")
+        viewModel = RouteViewModel(repo)
     }
 
     @Test

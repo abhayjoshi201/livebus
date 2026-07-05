@@ -46,6 +46,8 @@ fun GoogleMapLayer(
             } catch (e: Exception) {
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(busLatLng, 14f))
             }
+        } else {
+            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(stopLatLng, 14f))
         }
     }
 
@@ -70,11 +72,11 @@ fun GoogleMapLayer(
         uiSettings = uiSettings,
         properties = properties
     ) {
-        // User Stop Marker
+        // User Location Marker
         Marker(
             state = MarkerState(position = stopLatLng),
-            title = "User Stop: IIIT Gachibowli Campus",
-            snippet = "Assigned Boarding Location",
+            title = if (busLatLng != null) "User Stop: IIIT Gachibowli Campus" else "Your Location: Hyderabad IT Corridor",
+            snippet = if (busLatLng != null) "Assigned Boarding Location" else "Select a route from Plan Trip to view buses",
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
         )
 

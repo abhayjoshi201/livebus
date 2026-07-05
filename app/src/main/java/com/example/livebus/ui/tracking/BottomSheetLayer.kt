@@ -74,149 +74,172 @@ fun BottomSheetLayer(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Route Context
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
+            if (routeDetails.routeName == "No Route Selected") {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = routeDetails.routeName,
+                        text = "📍 Your Location: Hyderabad IT Corridor",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "${routeDetails.direction} • To ${routeDetails.destination}",
+                        text = "No route is currently selected.\nChoose a route or destination from 'Plan Trip' or Home to begin live bus tracking!",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                // Pulsing Live Badge
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(statusColor.copy(alpha = 0.15f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(statusColor.copy(alpha = alpha))
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "LIVE",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = statusColor
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Data Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // ETA Column with AnimatedContent
-                Column {
-                    Text(
-                        text = "ESTIMATED ARRIVAL",
-                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        AnimatedContent(
-                            targetState = eta,
-                            transitionSpec = {
-                                (slideInVertically { height -> height } + fadeIn()).togetherWith(
-                                    slideOutVertically { height -> -height } + fadeOut()
-                                )
-                            },
-                            label = "etaAnimation"
-                        ) { targetEta ->
-                            Text(
-                                text = "$targetEta",
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = statusColor
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
+                }
+            } else {
+                // Route Context
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
                         Text(
-                            text = "min",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(bottom = 6.dp)
+                            text = routeDetails.routeName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "${routeDetails.direction} • To ${routeDetails.destination}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Pulsing Live Badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(statusColor.copy(alpha = 0.15f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(statusColor.copy(alpha = alpha))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "LIVE",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = statusColor
                         )
                     }
                 }
 
-                // Distance & Status Column
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "DISTANCE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.SemiBold
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Data Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // ETA Column with AnimatedContent
+                    Column {
+                        Text(
+                            text = "ESTIMATED ARRIVAL",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            AnimatedContent(
+                                targetState = eta,
+                                transitionSpec = {
+                                    (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                                        slideOutVertically { height -> -height } + fadeOut()
+                                    )
+                                },
+                                label = "etaAnimation"
+                            ) { targetEta ->
+                                Text(
+                                    text = "$targetEta",
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = statusColor
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "min",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                        }
+                    }
+
+                    // Distance & Status Column
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "DISTANCE",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${String.format("%.1f", distance)} km",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = status.name.replace("_", " "),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = statusColor
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Alert Button
+                val buttonBg = if (isAlertActive) statusColor else MaterialTheme.colorScheme.surfaceVariant
+                val buttonContentColor = if (isAlertActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+
+                Button(
+                    onClick = onAlertClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = buttonBg,
+                        contentColor = buttonContentColor
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = if (isAlertActive) 4.dp else 0.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isAlertActive) Icons.Default.NotificationsActive else Icons.Default.Notifications,
+                        contentDescription = "Service Alert",
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${String.format("%.1f", distance)} km",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = status.name.replace("_", " "),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = statusColor
+                        text = if (isAlertActive) "Alert Active • Notify on Delay" else "Set Arrival Alert",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Alert Button
-            val buttonBg = if (isAlertActive) statusColor else MaterialTheme.colorScheme.surfaceVariant
-            val buttonContentColor = if (isAlertActive) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-
-            Button(
-                onClick = onAlertClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = buttonBg,
-                    contentColor = buttonContentColor
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = if (isAlertActive) 4.dp else 0.dp)
-            ) {
-                Icon(
-                    imageVector = if (isAlertActive) Icons.Default.NotificationsActive else Icons.Default.Notifications,
-                    contentDescription = "Service Alert",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = if (isAlertActive) "Alert Active • Notify on Delay" else "Set Arrival Alert",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
             }
             
             Spacer(modifier = Modifier.height(8.dp))

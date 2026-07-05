@@ -21,10 +21,15 @@ import com.example.livebus.ui.home.HomeScreen
 import com.example.livebus.ui.driver.LiveBusAppNavigation
 import com.example.livebus.ui.theme.LiveBusTheme
 import com.example.livebus.ui.tracking.LiveTrackingScreen
+import com.example.livebus.data.TransitRepository
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var transitRepository: TransitRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -66,7 +71,10 @@ class MainActivity : ComponentActivity() {
                         )
                         "search" -> SearchScreen(
                             onBackClick = { currentScreen = "home" },
-                            onRouteSelect = { currentScreen = "itinerary" }
+                            onRouteSelect = { routeId ->
+                                transitRepository.selectRoute(routeId)
+                                currentScreen = "itinerary"
+                            }
                         )
                         "itinerary" -> RouteItineraryScreen(
                             onBackClick = { currentScreen = "home" },
@@ -76,7 +84,10 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { currentScreen = "itinerary" }
                         )
                         else -> HomeScreen(
-                            onNavigateToTracking = { currentScreen = "itinerary" },
+                            onNavigateToTracking = { routeId ->
+                                transitRepository.selectRoute(routeId)
+                                currentScreen = "itinerary"
+                            },
                             onSearchClick = { currentScreen = "search" },
                             onTicketsClick = { currentScreen = "tickets" },
                             onAlertsClick = { currentScreen = "alerts" },

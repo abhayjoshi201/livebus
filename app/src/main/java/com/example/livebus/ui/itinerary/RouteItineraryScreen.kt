@@ -88,27 +88,50 @@ fun RouteItineraryScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            // Summary Header Section
-            SummaryHeaderSection(
-                totalEtaMinutes = totalEtaMinutes,
-                destinationName = destinationName,
-                remainingDistanceKm = remainingDistanceKm,
-                statusColor = statusColor
-            )
+            if (stops.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "📍 Your Location: Hyderabad IT Corridor",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "No route is currently selected.\nChoose a route or destination from 'Plan Trip' to view stop itineraries and ETA countdowns!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                // Summary Header Section
+                SummaryHeaderSection(
+                    totalEtaMinutes = totalEtaMinutes,
+                    destinationName = destinationName,
+                    remainingDistanceKm = remainingDistanceKm,
+                    statusColor = statusColor
+                )
 
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
-                thickness = 1.dp
-            )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                    thickness = 1.dp
+                )
 
-            // Vertical Timeline Section
-            VerticalTimeline(
-                stops = stops,
-                currentBusStopIndex = currentBusStopIndex,
-                nextStopEta = nextStopEta,
-                status = status,
-                modifier = Modifier.weight(1f)
-            )
+                // Vertical Timeline Section
+                VerticalTimeline(
+                    stops = stops,
+                    currentBusStopIndex = currentBusStopIndex,
+                    nextStopEta = nextStopEta,
+                    status = status,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

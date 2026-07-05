@@ -17,6 +17,9 @@ import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 import javax.inject.Inject
 
+import com.example.livebus.data.TransitRepository
+import io.reactivex.disposables.Disposable
+
 data class Stop(
     val id: String,
     val name: String,
@@ -25,26 +28,21 @@ data class Stop(
 )
 
 @HiltViewModel
-class RouteViewModel @Inject constructor() : ViewModel() {
+class RouteViewModel @Inject constructor(
+    private val transitRepository: TransitRepository
+) : ViewModel() {
 
     private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/transit-ws")
     private val compositeDisposable = CompositeDisposable()
+    private var routeDisposable: Disposable? = null
 
-    private val defaultStops = listOf(
-        Stop("1", "Mehdipatnam Bus Depot", 0.0, 0),
-        Stop("2", "Tolichowki X Roads", 3.2, 8),
-        Stop("3", "Shaikpet Dargah", 6.8, 15),
-        Stop("4", "Raidurg Bio-Diversity", 9.5, 21),
-        Stop("5", "IIIT Gachibowli Campus", 12.0, 28)
-    )
-
-    private val _stops = MutableStateFlow(defaultStops)
+    private val _stops = MutableStateFlow(transitRepository.getActiveRoute()?.stops ?: emptyList())
     val stops: StateFlow<List<Stop>> = _stops.asStateFlow()
 
-    private val _routeName = MutableStateFlow("ROUTE 216W")
+    private val _routeName = MutableStateFlow(transitRepository.getActiveRoute()?.routeName ?: "No Route Selected")
     val routeName: StateFlow<String> = _routeName.asStateFlow()
 
-    private val _destinationName = MutableStateFlow("IIIT Gachibowli Campus")
+    private val _destinationName = MutableStateFlow(transitRepository.getActiveRoute()?.destination ?: "Select a route from Plan Trip")
     val destinationName: StateFlow<String> = _destinationName.asStateFlow()
 
     private val _totalEtaMinutes = MutableStateFlow(25)
@@ -53,7 +51,6 @@ class RouteViewModel @Inject constructor() : ViewModel() {
     private val _remainingDistanceKm = MutableStateFlow(12.0)
     val remainingDistanceKm: StateFlow<Double> = _remainingDistanceKm.asStateFlow()
 
-    // Index 2 is Shaikpet Dargah by default (target stop)
     private val _currentBusStopIndex = MutableStateFlow(2)
     val currentBusStopIndex: StateFlow<Int> = _currentBusStopIndex.asStateFlow()
 
@@ -64,13 +61,29 @@ class RouteViewModel @Inject constructor() : ViewModel() {
     val busStatus: StateFlow<BusStatus> = _busStatus.asStateFlow()
 
     init {
-        connectStomp()
+        stompClient.connect()
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.Default) {
+            transitRepository.activeRouteId.collect {
+                val route = transitRepository.getActiveRoute()
+                if (route != null) {
+                    _stops.value = route.stops
+                    _routeName.value = route.routeName
+                    _destinationName.value = route.destination
+                    _currentBusStopIndex.value = kotlin.math.min(2, route.stops.size - 1)
+                    subscribeToRouteTopic(route.stompTopic)
+                } else {
+                    _stops.value = emptyList()
+                    _routeName.value = "No Route Selected"
+                    _destinationName.value = "Select a route from Plan Trip"
+                    routeDisposable?.dispose()
+                }
+            }
+        }
     }
 
-    private fun connectStomp() {
-        stompClient.connect()
-
-        val disposable = stompClient.topic("/topic/route/216W")
+    private fun subscribeToRouteTopic(topic: String) {
+        routeDisposable?.dispose()
+        routeDisposable = stompClient.topic(topic)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.payload }
@@ -81,7 +94,6 @@ class RouteViewModel @Inject constructor() : ViewModel() {
             }, Consumer { error ->
                 println("Error subscribing to STOMP topic in RouteViewModel: ${error.message}")
             })
-        compositeDisposable.add(disposable)
     }
 
     fun parseAndApplyMessage(payload: String) {
