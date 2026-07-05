@@ -21,6 +21,7 @@ fun LiveTrackingScreen(
 
     val busLocation by viewModel.busLocation.collectAsState()
     val userStopLocation by viewModel.userStopLocation.collectAsState()
+    val routeWaypoints by viewModel.routeWaypoints.collectAsState()
     val routeDetails by viewModel.routeDetails.collectAsState()
     val eta by viewModel.eta.collectAsState()
     val distance by viewModel.distance.collectAsState()
@@ -34,6 +35,7 @@ fun LiveTrackingScreen(
         GoogleMapLayer(
             busLocation = busLocation,
             userStopLocation = userStopLocation,
+            routeWaypoints = routeWaypoints,
             modifier = Modifier.fillMaxSize()
         )
 

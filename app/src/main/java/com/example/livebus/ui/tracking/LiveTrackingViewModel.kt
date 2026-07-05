@@ -34,6 +34,19 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
     private val _busLocation = MutableStateFlow<LatLng?>(LatLng(37.7749, -122.4194))
     val busLocation: StateFlow<LatLng?> = _busLocation.asStateFlow()
 
+    // Authoritative road intersection waypoints along Route 101-A transit corridor
+    private val route101Waypoints = listOf(
+        LatLng(37.7749, -122.4194), // Start: 9th & Market St
+        LatLng(37.7770, -122.4172), // 8th & Market St
+        LatLng(37.7791, -122.4149), // 7th & Market St
+        LatLng(37.7812, -122.4126), // 6th & Market St (turn left onto 6th St)
+        LatLng(37.7825, -122.4145), // 6th & Mission St
+        LatLng(37.7833, -122.4167)  // Stop: University Campus Boarding Point
+    )
+
+    private val _routeWaypoints = MutableStateFlow(route101Waypoints)
+    val routeWaypoints: StateFlow<List<LatLng>> = _routeWaypoints.asStateFlow()
+
     private val _userStopLocation = MutableStateFlow(LatLng(37.7833, -122.4167))
     val userStopLocation: StateFlow<LatLng> = _userStopLocation.asStateFlow()
 
@@ -58,19 +71,31 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
 
     fun startSimulating() {
         viewModelScope.launch {
-            var step = 0
+            var currentSegment = 0
+            var progress = 0.0
             while (true) {
-                kotlinx.coroutines.delay(2500)
-                val current = _busLocation.value ?: LatLng(37.7749, -122.4194)
-                val target = _userStopLocation.value
-                val newLat = current.latitude + (target.latitude - current.latitude) * 0.05
-                val newLon = current.longitude + (target.longitude - current.longitude) * 0.05
-                _busLocation.value = LatLng(newLat, newLon)
+                kotlinx.coroutines.delay(1200)
+                val waypoints = _routeWaypoints.value
+                if (waypoints.size >= 2 && currentSegment < waypoints.size - 1) {
+                    val currentStart = waypoints[currentSegment]
+                    val currentEnd = waypoints[kotlin.math.min(currentSegment + 1, waypoints.size - 1)]
+                    progress += 0.25
+                    if (progress >= 1.0) {
+                        progress = 0.0
+                        currentSegment++
+                        if (currentSegment >= waypoints.size - 1) {
+                            currentSegment = 0 // Loop route simulation for continuous demonstration
+                        }
+                    }
+                    val activeStart = waypoints[currentSegment]
+                    val activeEnd = waypoints[kotlin.math.min(currentSegment + 1, waypoints.size - 1)]
+                    val newLat = activeStart.latitude + (activeEnd.latitude - activeStart.latitude) * progress
+                    val newLon = activeStart.longitude + (activeEnd.longitude - activeStart.longitude) * progress
+                    _busLocation.value = LatLng(newLat, newLon)
 
-                step++
-                if (step % 2 == 0 && _eta.value > 1) {
-                    _eta.value -= 1
-                    _distance.value = kotlin.math.max(0.1, kotlin.math.round((_distance.value - 0.1) * 10) / 10.0)
+                    val remainingSegments = (waypoints.size - 1 - currentSegment).coerceAtLeast(1)
+                    _eta.value = remainingSegments
+                    _distance.value = kotlin.math.round((remainingSegments * 0.24) * 10) / 10.0
                 }
             }
         }

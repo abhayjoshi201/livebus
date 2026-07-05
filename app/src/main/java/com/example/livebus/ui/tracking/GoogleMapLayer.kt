@@ -14,6 +14,7 @@ import com.google.maps.android.compose.*
 fun GoogleMapLayer(
     busLocation: LatLng?,
     userStopLocation: LatLng,
+    routeWaypoints: List<LatLng> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
@@ -24,19 +25,23 @@ fun GoogleMapLayer(
     val busLatLng = remember(busLocation) {
         busLocation?.let { com.google.android.gms.maps.model.LatLng(it.latitude, it.longitude) }
     }
+    val waypointLatLngs = remember(routeWaypoints) {
+        routeWaypoints.map { com.google.android.gms.maps.model.LatLng(it.latitude, it.longitude) }
+    }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(busLatLng ?: stopLatLng, 14f)
     }
 
-    // Automatically adjust camera bounds when vehicle coordinates update
-    LaunchedEffect(busLatLng, stopLatLng) {
+    // Automatically adjust camera bounds to frame street corridor and vehicles
+    LaunchedEffect(busLatLng, stopLatLng, waypointLatLngs) {
         if (busLatLng != null) {
             try {
-                val bounds = LatLngBounds.builder()
-                    .include(busLatLng)
-                    .include(stopLatLng)
-                    .build()
+                val boundsBuilder = LatLngBounds.builder()
+                boundsBuilder.include(busLatLng)
+                boundsBuilder.include(stopLatLng)
+                waypointLatLngs.forEach { boundsBuilder.include(it) }
+                val bounds = boundsBuilder.build()
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 150))
             } catch (e: Exception) {
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(busLatLng, 14f))
@@ -73,7 +78,7 @@ fun GoogleMapLayer(
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
         )
 
-        // Live Bus Marker & Route Polyline
+        // Live Bus Marker & Road Polyline Corridor
         if (busLatLng != null) {
             Marker(
                 state = MarkerState(position = busLatLng),
@@ -83,7 +88,7 @@ fun GoogleMapLayer(
             )
 
             Polyline(
-                points = listOf(busLatLng, stopLatLng),
+                points = if (waypointLatLngs.isNotEmpty()) waypointLatLngs else listOf(busLatLng, stopLatLng),
                 color = Color(0xFF2E7D32),
                 width = 16f
             )
