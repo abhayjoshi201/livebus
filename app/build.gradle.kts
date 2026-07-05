@@ -1,3 +1,12 @@
+import java.util.Properties
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
+
 plugins {
     id("com.android.application")
     id("com.google.dagger.hilt.android")
@@ -17,6 +26,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
@@ -68,7 +78,11 @@ dependencies {
     testImplementation("org.json:json:20231013")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
 
-    // MapLibre
+    // Google Maps Platform Compose
+    implementation("com.google.maps.android:maps-compose:4.4.1")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+
+    // MapLibre (Legacy fallback)
     implementation("org.maplibre.gl:android-sdk:10.3.7")
 
     // STOMP WebSocket
