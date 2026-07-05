@@ -73,7 +73,7 @@ fun GoogleMapLayer(
         // User Stop Marker
         Marker(
             state = MarkerState(position = stopLatLng),
-            title = "User Stop: University Campus",
+            title = "User Stop: IIIT Gachibowli Campus",
             snippet = "Assigned Boarding Location",
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
         )
@@ -82,8 +82,8 @@ fun GoogleMapLayer(
         if (busLatLng != null) {
             Marker(
                 state = MarkerState(position = busLatLng),
-                title = "Live Bus #BUS-4052",
-                snippet = "Route 101-A • Active Telemetry",
+                title = "Live Bus #TG-09-Z-4052",
+                snippet = "Route 216W • Active Telemetry",
                 icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
             )
 

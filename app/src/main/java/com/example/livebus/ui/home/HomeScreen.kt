@@ -178,7 +178,7 @@ fun ServiceAlertsBanner(onClick: () -> Unit = {}) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Severe Delay on Route 202-B • Tap for Advisories",
+                    text = "Severe Delay on Route 219 • Tap for Advisories",
                     color = Color.White,
                     fontWeight = FontWeight.Medium
                 )
@@ -217,7 +217,7 @@ fun LiveCommuteWidget() {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Route 101-A: 5 mins (On Time)",
+                    text = "Route 216W: 5 mins (On Time)",
                     fontSize = 14.sp,
                     color = Color.White
                 )
@@ -298,16 +298,16 @@ fun FavoriteRoutesSection(onRouteClick: () -> Unit = {}) {
         ) {
             items(2) { index ->
                 RouteCard(
-                    routeName = "ROUTE 101-A",
-                    destination = "City Center",
+                    routeName = "ROUTE 216W",
+                    destination = "IIIT Gachibowli",
                     statusColor = onTimeColor,
                     onClick = onRouteClick
                 )
             }
             item {
                 RouteCard(
-                    routeName = "ROUTE 202-B",
-                    destination = "Uptown",
+                    routeName = "ROUTE 219",
+                    destination = "Patancheru",
                     statusColor = minorDelayColor,
                     onClick = onRouteClick
                 )
@@ -364,11 +364,11 @@ fun PinnedStopsSection() {
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("🚏 Central Station", fontWeight = FontWeight.Medium)
+                Text("🚏 Mehdipatnam Bus Depot", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("🚌 101-A  Arriving in 5 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 216W  Arriving in 5 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("🚌 101-B  Arriving in 12 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 219  Arriving in 12 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -391,9 +391,9 @@ fun NearestStopsSection() {
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("📍 Market Junction (0.2 km)", fontWeight = FontWeight.Medium)
+                Text("📍 Tolichowki X Roads (0.2 km)", fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("🚌 42-C   Arriving in 2 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("🚌 47L   Arriving in 2 min", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

@@ -19,9 +19,9 @@ import io.reactivex.schedulers.Schedulers
 data class LatLng(val latitude: Double, val longitude: Double)
 
 data class RouteDetails(
-    val routeName: String = "Route 101-A",
-    val destination: String = "City Center",
-    val direction: String = "Northbound"
+    val routeName: String = "Route 216W",
+    val destination: String = "IIIT Gachibowli",
+    val direction: String = "Westbound"
 )
 
 @HiltViewModel
@@ -30,24 +30,24 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
     private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/transit-ws")
     private val compositeDisposable = CompositeDisposable()
 
-    // Default initial coordinates for realistic map startup
-    private val _busLocation = MutableStateFlow<LatLng?>(LatLng(37.7749, -122.4194))
+    // Default initial coordinates for Hyderabad (Mehdipatnam Bus Depot)
+    private val _busLocation = MutableStateFlow<LatLng?>(LatLng(17.3916, 78.4356))
     val busLocation: StateFlow<LatLng?> = _busLocation.asStateFlow()
 
-    // Authoritative road intersection waypoints along Route 101-A transit corridor
-    private val route101Waypoints = listOf(
-        LatLng(37.7749, -122.4194), // Start: 9th & Market St
-        LatLng(37.7770, -122.4172), // 8th & Market St
-        LatLng(37.7791, -122.4149), // 7th & Market St
-        LatLng(37.7812, -122.4126), // 6th & Market St (turn left onto 6th St)
-        LatLng(37.7825, -122.4145), // 6th & Mission St
-        LatLng(37.7833, -122.4167)  // Stop: University Campus Boarding Point
+    // Authoritative road intersection waypoints along Route 216W (Mehdipatnam to Gachibowli corridor)
+    private val route216Waypoints = listOf(
+        LatLng(17.3916, 78.4356), // Start: Mehdipatnam Bus Depot
+        LatLng(17.4018, 78.4111), // Tolichowki X Roads
+        LatLng(17.4065, 78.3912), // Shaikpet Dargah
+        LatLng(17.4242, 78.3816), // Raidurg Bio-Diversity X Roads
+        LatLng(17.4401, 78.3611), // Gachibowli Stadium X Roads
+        LatLng(17.4455, 78.3489)  // Stop: IIIT Hyderabad Campus
     )
 
-    private val _routeWaypoints = MutableStateFlow(route101Waypoints)
+    private val _routeWaypoints = MutableStateFlow(route216Waypoints)
     val routeWaypoints: StateFlow<List<LatLng>> = _routeWaypoints.asStateFlow()
 
-    private val _userStopLocation = MutableStateFlow(LatLng(37.7833, -122.4167))
+    private val _userStopLocation = MutableStateFlow(LatLng(17.4455, 78.3489))
     val userStopLocation: StateFlow<LatLng> = _userStopLocation.asStateFlow()
 
     private val _routeDetails = MutableStateFlow(RouteDetails())
@@ -107,7 +107,7 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
             try {
                 val apiKey = com.example.livebus.BuildConfig.MAPS_API_KEY
                 if (apiKey.isNotBlank() && !apiKey.contains("PASTE_YOUR")) {
-                    val urlStr = "https://maps.googleapis.com/maps/api/directions/json?origin=37.7749,-122.4194&destination=37.7833,-122.4167&mode=driving&key=$apiKey"
+                    val urlStr = "https://maps.googleapis.com/maps/api/directions/json?origin=17.3916,78.4356&destination=17.4455,78.3489&mode=driving&key=$apiKey"
                     val url = java.net.URL(urlStr)
                     val conn = url.openConnection() as java.net.HttpURLConnection
                     conn.requestMethod = "GET"
@@ -169,7 +169,7 @@ class LiveTrackingViewModel @Inject constructor() : ViewModel() {
     private fun connectStomp() {
         stompClient.connect()
 
-        val disposable = stompClient.topic("/topic/route/101-A")
+        val disposable = stompClient.topic("/topic/route/216W")
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .map { it.payload }

@@ -148,11 +148,11 @@ fun DriverBottomNavigationBar(
 @Composable
 fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
     val availableRoutes = listOf(
-        "101-A (Downtown Express)",
-        "42-B (Uptown Local)",
-        "77-C (Crosstown Transit)",
-        "204-D (Airport FastLink)",
-        "15-E (University Campus Loop)"
+        "216W (HITEC City Express)",
+        "219 (Patancheru Local)",
+        "47L (Jubilee Hills Loop)",
+        "222A (RGIA Shamshabad FastLink)",
+        "10H (Secunderabad Station Loop)"
     )
     var selectedRoute by remember { mutableStateOf<String?>(null) }
 
@@ -784,8 +784,8 @@ fun OperatorSettingsScreen(
 // ==========================================
 @Composable
 fun TripEndScreen(
-    route: String = "101-A (Downtown Express)",
-    busId: String = "BUS-4052",
+    route: String = "216W (HITEC City Express)",
+    busId: String = "TG-09-Z-4052",
     txCount: Int = 0,
     onReturnHome: () -> Unit,
     onSwitchToPassenger: () -> Unit = {},

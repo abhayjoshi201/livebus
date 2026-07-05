@@ -14,27 +14,27 @@ class AlertsViewModel @Inject constructor() : ViewModel() {
         listOf(
             SystemAlert(
                 id = "sys-1",
-                title = "Route 101-A Suspended",
-                description = "Due to a major accident at Market Junction, all inbound buses are halted. Expect 45m delays.",
+                title = "Route 216W Suspended",
+                description = "Due to heavy waterlogging at Tolichowki X Roads, all inbound buses are halted. Expect 45m delays.",
                 severity = AlertSeverity.SEVERE,
                 timestamp = "Updated 2 mins ago",
-                affectedRoutes = listOf("101-A")
+                affectedRoutes = listOf("216W")
             ),
             SystemAlert(
                 id = "sys-2",
                 title = "General Weather Warning",
-                description = "Heavy rain is causing 10-15 min delays across all downtown routes.",
+                description = "Heavy monsoon rain is causing 10-15 min delays across all IT Corridor / Gachibowli routes.",
                 severity = AlertSeverity.WARNING,
                 timestamp = "Updated 1 hr ago",
-                affectedRoutes = listOf("All Downtown Lines")
+                affectedRoutes = listOf("All Cyberabad Lines")
             ),
             SystemAlert(
                 id = "sys-3",
-                title = "Route 204-B Resumed",
-                description = "Standard schedule has resumed. No ongoing delays reported.",
+                title = "Route 219 Resumed",
+                description = "Standard schedule has resumed. No ongoing delays reported towards Patancheru.",
                 severity = AlertSeverity.INFO_RESOLVED,
                 timestamp = "Updated 3 hrs ago",
-                affectedRoutes = listOf("204-B")
+                affectedRoutes = listOf("219")
             )
         )
     )
@@ -45,14 +45,14 @@ class AlertsViewModel @Inject constructor() : ViewModel() {
             PersonalAlert(
                 id = "pers-1",
                 title = "Arrival Reminder",
-                message = "Your bus on Route 101-A is arriving at Central Station in 5 minutes.",
+                message = "Your bus on Route 216W is arriving at Mehdipatnam Depot in 5 minutes.",
                 timestamp = "Just now",
-                routeNumber = "101-A"
+                routeNumber = "216W"
             ),
             PersonalAlert(
                 id = "pers-2",
                 title = "Service Change Notice",
-                message = "Your favorited stop Market Junction has moved 50 meters north due to construction.",
+                message = "Your favorited stop Tolichowki X Roads has moved 50 meters north due to flyover construction.",
                 timestamp = "Yesterday",
                 routeNumber = null
             ),
