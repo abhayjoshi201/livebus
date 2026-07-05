@@ -1,6 +1,16 @@
-/* --- TOP NAVIGATION HEADER --- */
+/* --- HOST & TOP NAVIGATION HEADER --- */
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
 header {
   height: 70px;
+  flex-shrink: 0;
   background: var(--bg-panel);
   backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border);
@@ -10,6 +20,7 @@ header {
   padding: 0 28px;
   z-index: 1000;
 }
+
 
 .logo-area {
   display: flex;
@@ -92,6 +103,8 @@ header {
 /* --- MAIN WORKSPACE LAYOUT --- */
 main {
   flex: 1;
+  height: 100%;
+  width: 100%;
   display: flex;
   position: relative;
   overflow: hidden;
@@ -100,6 +113,8 @@ main {
 /* --- SIDE PANELS & TRANSITIONS --- */
 .sidebar-container {
   width: 440px;
+  height: 100%;
+  flex-shrink: 0;
   position: relative;
   z-index: 500;
   background: var(--bg-panel);
@@ -458,6 +473,8 @@ main {
 #map {
   flex: 1;
   height: 100%;
+  width: 100%;
+  min-height: 400px;
   z-index: 10;
 }
 
