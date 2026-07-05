@@ -3,6 +3,7 @@ package livebus.passenger.controller;
 import livebus.admin.model.Route;
 import livebus.admin.model.Stop;
 import livebus.passenger.dto.LiveLocationResponse;
+import livebus.passenger.dto.NearestStopProjection;
 import livebus.passenger.service.PassengerService;
 import livebus.passenger.dto.RouteResponse;
 import livebus.passenger.dto.EtaResponse;
@@ -48,5 +49,14 @@ public class PassengerController {
             @PathVariable UUID routeId, 
             @PathVariable UUID stopId) {
         return ResponseEntity.ok(passengerService.getEtaForStop(routeId, stopId));
+    }
+
+    @GetMapping("/stops/nearest")
+    public ResponseEntity<List<NearestStopProjection>> getNearestStops(
+            @RequestParam double latitude,
+            @RequestParam double longitude) {
+        
+        List<NearestStopProjection> nearestStops = passengerService.getNearestStops(latitude, longitude);
+        return ResponseEntity.ok(nearestStops);
     }
 }
