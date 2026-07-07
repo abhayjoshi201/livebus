@@ -157,62 +157,82 @@ The backend implements role-based security configurations using **Spring Securit
 
 ---
 
-## 🛠️ How to Build and Run
+## 🚀 Setup & Installation Guide
 
-### 1. Database Setup
-Ensure PostgreSQL is running locally on port `5433`:
-```bash
-# Check if PostgreSQL port is ready
-pg_isready -h localhost -p 5433
-```
+If you want to clone this repository and run the end-to-end system on your local workstation, follow these steps:
 
-### 2. Spring Boot Backend Server
-To build and start the backend service (served on port `8080`):
-```bash
-cd backend
-./gradlew :app:bootRun
-```
-The **Web Portal** will automatically be served at:
-* **[http://localhost:8080/index.html](http://localhost:8080/index.html)**
+### 📋 Prerequisites
+Make sure you have the following installed on your machine:
+1. **Java Development Kit (JDK 17 or higher)**
+2. **Node.js (v18+) & npm**
+3. **PostgreSQL** (running on port `5433` by default)
+4. **Android Studio** (Koala or newer, for running the Android mobile application)
+5. **Android SDK & Emulator** (configured via SDK Manager in Android Studio)
 
 ---
 
-### 3. Angular Web Application
+### 1. Database Configuration
+1. Open your PostgreSQL client and create a database named `livebus`:
+   ```sql
+   CREATE DATABASE livebus;
+   ```
+2. Verify the server is running on port `5433`:
+   ```bash
+   pg_isready -h localhost -p 5433
+   ```
+3. *(Optional)* Modify `backend/app/src/main/resources/application.properties` if you need to update the database username/password:
+   ```properties
+   spring.datasource.username=your_postgres_username
+   spring.datasource.password=your_postgres_password
+   ```
 
-#### Live Local Development
-To run the live Angular development server locally (served on port `4200` by default):
+---
+
+### 2. Spring Boot Backend Server
+To build and start the server:
+```bash
+# From the project root directory
+./backend/gradlew -p backend :app:bootRun
+```
+The server will start up on port `8080`.
+
+---
+
+### 3. Angular Web Portal
+You can run the web portal in live-reload development mode, or compile it to be served directly from the Spring Boot backend assets resource folder:
+
+#### Live Development Mode (Port 4200)
 ```bash
 cd angular-app
 npm install
 npm run start
 ```
-
-#### Compile and Sync Assets with Backend
-To compile the static production assets and automatically synchronize/copy them to the Spring Boot resources directory:
+#### Production Build & Sync (Served via Spring Boot on port 8080)
+If you want the backend to serve the web interface directly on **`http://localhost:8080/index.html`**:
 ```bash
 cd angular-app
+npm install
 npm run build:sync
 ```
 
 ---
 
-### 4. Android Application
+### 4. Android Mobile Application
+1. **Open in Android Studio**: Launch Android Studio and choose **Open an Existing Project**, selecting the root directory of this repository. Let Gradle sync and download dependencies.
+2. **Start the Emulator**:
+   Launch your preferred Android Virtual Device (AVD) using the Device Manager or command line:
+   ```bash
+   # List available emulators
+   ~/Android/Sdk/emulator/emulator -list-avds
 
-#### Step A: Launch the Android Virtual Device (AVD)
-Find your virtual device identifier and start it in the background:
-```bash
-# List available emulator device names
-~/Android/Sdk/emulator/emulator -list-avds
-
-# Start the selected emulator (replace Pixel_10_Pro with your device name)
-~/Android/Sdk/emulator/emulator -avd Pixel_10_Pro &
-```
-
-#### Step B: Install and Launch the Android App
-Build the debug APK, install it on the active emulator, and start the app:
-```bash
-./gradlew installDebug && ~/Android/Sdk/platform-tools/adb shell am start -n com.example.livebus/.MainActivity
-```
+   # Start the emulator (replace Pixel_10_Pro with your emulator name)
+   ~/Android/Sdk/emulator/emulator -avd Pixel_10_Pro &
+   ```
+3. **Compile & Deploy**:
+   Build the debug application and install it on the active emulator:
+   ```bash
+   ./gradlew installDebug && ~/Android/Sdk/platform-tools/adb shell am start -n com.example.livebus/.MainActivity
+   ```
 
 ---
 
