@@ -50,7 +50,7 @@ import androidx.compose.foundation.clickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
     allCities: List<TransitCity> = emptyList(),
     onCitySelect: (String) -> Unit = {},
     availableRoutes: List<TransitRoute> = emptyList(),
@@ -80,7 +80,7 @@ fun HomeScreen(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "Select Transit Metro Hub",
+                    text = "Select GEHU Campus",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -144,6 +144,7 @@ fun HomeScreen(
         scaffoldState = sheetState,
         sheetContent = {
             Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 bottomBar = { 
                     BottomNavigationBar(
                         selectedTabIndex = 0,
@@ -160,7 +161,8 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(paddingValues)
                         .padding(horizontal = 16.dp)
-                        .background(MaterialTheme.colorScheme.surface),
+                        .background(MaterialTheme.colorScheme.surface)
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // City Selector Header Pill
@@ -211,7 +213,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "🇮🇳 5 Metro Hubs",
+                                text = "⛰️ 3 Campuses",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -464,7 +466,7 @@ fun FavoriteRoutesSection(
         Spacer(modifier = Modifier.height(12.dp))
         if (routes.isEmpty()) {
             Text(
-                text = "No routes available for this metro hub.",
+                text = "No routes available for this campus.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -491,8 +493,8 @@ fun FavoriteRoutesSection(
 fun RouteCard(routeName: String, destination: String, statusColor: Color, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
-            .width(160.dp)
-            .height(100.dp)
+            .width(140.dp)
+            .height(80.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = statusColor)
@@ -500,19 +502,19 @@ fun RouteCard(routeName: String, destination: String, statusColor: Color, onClic
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(8.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = routeName,
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = destination,
                 color = Color.White,
-                fontSize = 12.sp
+                fontSize = 11.sp
             )
         }
     }
@@ -520,7 +522,7 @@ fun RouteCard(routeName: String, destination: String, statusColor: Color, onClic
 
 @Composable
 fun PinnedStopsSection(
-    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
     routes: List<TransitRoute> = emptyList(),
     onStopClick: (String) -> Unit = {}
 ) {
@@ -557,7 +559,7 @@ fun PinnedStopsSection(
 
 @Composable
 fun NearestStopsSection(
-    selectedCity: TransitCity = TransitCity("HYD", "Hyderabad", "TGSRTC", "Telangana State Road Transport Corporation", com.example.livebus.ui.tracking.LatLng(17.4455, 78.3489), "Hyderabad IT Corridor"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
     routes: List<TransitRoute> = emptyList(),
     onStopClick: (String) -> Unit = {}
 ) {

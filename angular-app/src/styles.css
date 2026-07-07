@@ -1,18 +1,18 @@
 /* Global Design System & Theme Tokens */
 :root {
-  --bg-dark: #090c15;
-  --bg-panel: rgba(13, 18, 30, 0.88);
-  --bg-card: rgba(24, 32, 53, 0.75);
-  --bg-card-hover: rgba(36, 48, 78, 0.9);
-  --primary: #3b82f6;
-  --primary-glow: rgba(59, 130, 246, 0.45);
-  --accent: #8b5cf6;
+  --bg-dark: #070f1e;
+  --bg-panel: rgba(11, 37, 69, 0.9);
+  --bg-card: rgba(20, 54, 95, 0.75);
+  --bg-card-hover: rgba(30, 77, 131, 0.9);
+  --primary: #f4b400;
+  --primary-glow: rgba(244, 180, 0, 0.45);
+  --accent: #e37a24;
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: rgba(255, 255, 255, 0.12);
+  --text-main: #ffffff;
+  --text-muted: #cbd5e1;
+  --border: rgba(244, 180, 0, 0.2);
   --glass-blur: blur(20px);
 }
 

@@ -13,10 +13,10 @@ import java.util.Date
 import java.util.Locale
 
 class ShiftViewModel : ViewModel() {
-    private val _selectedRoute = MutableStateFlow("216W (HITEC City Express)")
+    private val _selectedRoute = MutableStateFlow("D-1 (ISBT - Clement Town Campus)")
     val selectedRoute: StateFlow<String> = _selectedRoute.asStateFlow()
 
-    private val _selectedBus = MutableStateFlow("TG-09-Z-4052")
+    private val _selectedBus = MutableStateFlow("UA-07-TA-2024")
     val selectedBus: StateFlow<String> = _selectedBus.asStateFlow()
 
     private val _isBroadcasting = MutableStateFlow(false)
@@ -51,13 +51,40 @@ class ShiftViewModel : ViewModel() {
         logIncident("🟢 TELEMETRY STARTED: Broadcasting GPS payload to /app/driver/update every 3s.")
         
         broadcastJob = viewModelScope.launch {
-            val coords = listOf(
-                Pair(34.0522, -118.2437),
-                Pair(34.0532, -118.2447),
-                Pair(34.0542, -118.2457),
-                Pair(34.0552, -118.2467),
-                Pair(34.0562, -118.2477)
-            )
+            val coords = when {
+                _selectedRoute.value.contains("D-1") -> listOf(
+                    Pair(30.2872, 77.9984),
+                    Pair(30.2862, 78.0012),
+                    Pair(30.2835, 78.0028),
+                    Pair(30.2805, 78.0045),
+                    Pair(30.2785, 78.0055),
+                    Pair(30.2760, 78.0063),
+                    Pair(30.2730, 78.0075),
+                    Pair(30.2700, 78.0084),
+                    Pair(30.2692, 78.0088)
+                )
+                _selectedRoute.value.contains("D-2") -> listOf(
+                    Pair(30.3244, 78.0411),
+                    Pair(30.3200, 78.0400),
+                    Pair(30.3160, 78.0380),
+                    Pair(30.3000, 78.0150),
+                    Pair(30.2872, 77.9984),
+                    Pair(30.2862, 78.0012),
+                    Pair(30.2835, 78.0028),
+                    Pair(30.2805, 78.0045),
+                    Pair(30.2785, 78.0055),
+                    Pair(30.2760, 78.0063),
+                    Pair(30.2730, 78.0075),
+                    Pair(30.2700, 78.0084),
+                    Pair(30.2692, 78.0088)
+                )
+                else -> listOf(
+                    Pair(30.2872, 77.9984),
+                    Pair(30.2862, 78.0012),
+                    Pair(30.2835, 78.0028),
+                    Pair(30.2700, 78.0084)
+                )
+            }
             var index = 0
             while (true) {
                 val (lat, lon) = coords[index]
