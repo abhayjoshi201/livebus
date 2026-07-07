@@ -32,7 +32,7 @@ class RouteViewModel @Inject constructor(
     private val transitRepository: TransitRepository
 ) : ViewModel() {
 
-    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/transit-ws")
+    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws-livebus")
     private val compositeDisposable = CompositeDisposable()
     private var routeDisposable: Disposable? = null
 

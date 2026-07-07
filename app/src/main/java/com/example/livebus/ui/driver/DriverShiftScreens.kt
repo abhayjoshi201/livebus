@@ -148,11 +148,10 @@ fun DriverBottomNavigationBar(
 @Composable
 fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
     val availableRoutes = listOf(
-        "216W (HITEC City Express)",
-        "219 (Patancheru Local)",
-        "47L (Jubilee Hills Loop)",
-        "222A (RGIA Shamshabad FastLink)",
-        "10H (Secunderabad Station Loop)"
+        "D-1 (ISBT - Clement Town Campus)",
+        "D-2 (Clock Tower - Clement Town Campus)",
+        "B-1 (Haldwani - Bhimtal Campus)",
+        "H-1 (Lalkuan - Haldwani Campus)"
     )
     var selectedRoute by remember { mutableStateOf<String?>(null) }
 
@@ -784,8 +783,8 @@ fun OperatorSettingsScreen(
 // ==========================================
 @Composable
 fun TripEndScreen(
-    route: String = "216W (HITEC City Express)",
-    busId: String = "TG-09-Z-4052",
+    route: String = "D-1 (ISBT - Clement Town Campus)",
+    busId: String = "UA-07-TA-2024",
     txCount: Int = 0,
     onReturnHome: () -> Unit,
     onSwitchToPassenger: () -> Unit = {},

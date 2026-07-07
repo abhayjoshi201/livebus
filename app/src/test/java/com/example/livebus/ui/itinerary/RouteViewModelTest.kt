@@ -12,26 +12,26 @@ class RouteViewModelTest {
     @Before
     fun setup() {
         val repo = com.example.livebus.data.TransitRepository()
-        repo.selectRoute("216W")
+        repo.selectRoute("D-1")
         viewModel = RouteViewModel(repo)
     }
 
     @Test
     fun initialState_isCorrect() {
-        assertEquals(5, viewModel.stops.value.size)
+        assertEquals(4, viewModel.stops.value.size)
         assertEquals(2, viewModel.currentBusStopIndex.value)
-        assertEquals("ROUTE 216W", viewModel.routeName.value)
+        assertEquals("ROUTE D-1", viewModel.routeName.value)
         assertEquals(25, viewModel.totalEtaMinutes.value)
     }
 
     @Test
     fun updateCurrentStopIndex_updatesWhenWithinBounds() {
         assertEquals(2, viewModel.currentBusStopIndex.value)
-        viewModel.updateCurrentStopIndex(4)
-        assertEquals(4, viewModel.currentBusStopIndex.value)
+        viewModel.updateCurrentStopIndex(3)
+        assertEquals(3, viewModel.currentBusStopIndex.value)
         // Ignored out of bounds
-        viewModel.updateCurrentStopIndex(10)
-        assertEquals(4, viewModel.currentBusStopIndex.value)
+        viewModel.updateCurrentStopIndex(4)
+        assertEquals(3, viewModel.currentBusStopIndex.value)
     }
 
     @Test
