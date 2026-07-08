@@ -232,7 +232,11 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    QuickCommuteButtonsSection()
+                    QuickCommuteButtonsSection(
+                        availableRoutes = availableRoutes,
+                        onRouteClick = onRouteClick,
+                        onSettingsClick = onSettingsClick
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
 
                     FavoriteRoutesSection(
@@ -402,21 +406,35 @@ fun SearchBarSection(onSearchClick: () -> Unit = {}) {
 }
 
 @Composable
-fun QuickCommuteButtonsSection() {
+fun QuickCommuteButtonsSection(
+    availableRoutes: List<TransitRoute> = emptyList(),
+    onRouteClick: (String) -> Unit = {},
+    onSettingsClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
     ) {
         AssistChip(
-            onClick = { /* TODO: Navigate to Home */ },
+            onClick = { 
+                if (availableRoutes.isNotEmpty()) {
+                    onRouteClick(availableRoutes[0].routeId)
+                }
+            },
             label = { Text("🏠 Home") }
         )
         AssistChip(
-            onClick = { /* TODO: Navigate to Work */ },
+            onClick = { 
+                if (availableRoutes.size > 1) {
+                    onRouteClick(availableRoutes[1].routeId)
+                } else if (availableRoutes.isNotEmpty()) {
+                    onRouteClick(availableRoutes[0].routeId)
+                }
+            },
             label = { Text("🏢 Work") }
         )
         AssistChip(
-            onClick = { /* TODO: Add Shortcut */ },
+            onClick = onSettingsClick,
             label = { Text("+ Add Shortcut") }
         )
     }
