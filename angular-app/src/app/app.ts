@@ -356,33 +356,41 @@ export class App implements AfterViewInit, OnDestroy {
     this.stopMarker = L.marker(destCoord, {
       icon: L.divIcon({ className: 'custom-bus-marker', html: '📍', iconSize: [32, 32] })
     }).addTo(this.map).bindPopup(`<b>Boarding Stop: ${route.dest}</b>`);
-
     this.map.fitBounds(this.routePolyline.getBounds(), { padding: [80, 80] });
 
-    let prog1 = 0.65;
-    let prog2 = 0.35;
-    let prog3 = 0.08;
+    let prog1 = 0.65; let dir1 = 1;
+    let prog2 = 0.35; let dir2 = 1;
+    let prog3 = 0.08; let dir3 = 1;
 
     const baseBusId = route.busId;
     const bus2Id = baseBusId.slice(0, -4) + (parseInt(baseBusId.slice(-4)) + 48 || "4100");
     const bus3Id = baseBusId.slice(0, -4) + (parseInt(baseBusId.slice(-4)) + 170 || "4222");
 
-    const m1 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟢', iconSize: [28, 28] }) }).addTo(this.map);
-    const m2 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟡', iconSize: [24, 24] }) }).addTo(this.map);
-    const m3 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🟡', iconSize: [24, 24] }) }).addTo(this.map);
+    const m1 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🚍', iconSize: [28, 28] }) }).addTo(this.map);
+    const m2 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🚍', iconSize: [28, 28] }) }).addTo(this.map);
+    const m3 = L.marker(route.waypoints[0], { icon: L.divIcon({ className: 'custom-bus-marker', html: '🚍', iconSize: [28, 28] }) }).addTo(this.map);
     this.busMarkers = [m1, m2, m3];
 
     const updateStep = () => {
       const wps = route.waypoints;
       const maxSeg = wps.length - 1;
 
-      prog1 += 0.04; if (prog1 >= 1.0) prog1 = 0.0;
-      prog2 += 0.035; if (prog2 >= 1.0) prog2 = 0.0;
-      prog3 += 0.03; if (prog3 >= 1.0) prog3 = 0.0;
+      // Slow simulation mimicking actual travel: progress steps of 0.005, 0.0045, 0.004
+      prog1 += 0.005 * dir1;
+      if (prog1 >= 1.0) { prog1 = 1.0; dir1 = -1; }
+      else if (prog1 <= 0.0) { prog1 = 0.0; dir1 = 1; }
 
-      const getCoordAndETA = (progress: number) => {
+      prog2 += 0.0045 * dir2;
+      if (prog2 >= 1.0) { prog2 = 1.0; dir2 = -1; }
+      else if (prog2 <= 0.0) { prog2 = 0.0; dir2 = 1; }
+
+      prog3 += 0.004 * dir3;
+      if (prog3 >= 1.0) { prog3 = 1.0; dir3 = -1; }
+      else if (prog3 <= 0.0) { prog3 = 0.0; dir3 = 1; }
+
+      const getCoordAndETA = (progress: number, dir: number) => {
         const segIdx = Math.floor(progress * maxSeg);
-        const remRatio = Math.max(0.04, 1.0 - progress);
+        const remRatio = Math.max(0.04, dir === 1 ? (1.0 - progress) : progress);
         const s = wps[segIdx];
         const e = wps[Math.min(segIdx + 1, maxSeg)];
         const subProg = (progress * maxSeg) % 1;
@@ -393,9 +401,9 @@ export class App implements AfterViewInit, OnDestroy {
         return { lat, lng, eta, dist };
       };
 
-      const b1 = getCoordAndETA(prog1);
-      const b2 = getCoordAndETA(prog2);
-      const b3 = getCoordAndETA(prog3);
+      const b1 = getCoordAndETA(prog1, dir1);
+      const b2 = getCoordAndETA(prog2, dir2);
+      const b3 = getCoordAndETA(prog3, dir3);
 
       m1.setLatLng([b1.lat, b1.lng]).bindPopup(`<b>Next Bus #${baseBusId}</b><br>ETA: ${b1.eta} min`);
       m2.setLatLng([b2.lat, b2.lng]).bindPopup(`<b>Following Bus #${bus2Id}</b><br>ETA: ${b2.eta} min`);
@@ -405,9 +413,9 @@ export class App implements AfterViewInit, OnDestroy {
       this.distValue.set(b1.dist);
 
       this.queueList.set([
-        { icon: '🟢', busId: `#${baseBusId}`, eta: b1.eta, isPrimary: true },
-        { icon: '🟡', busId: `#${bus2Id}`, eta: b2.eta, isPrimary: false },
-        { icon: '🟡', busId: `#${bus3Id}`, eta: b3.eta, isPrimary: false }
+        { icon: '🚍', busId: `#${baseBusId}`, eta: b1.eta, isPrimary: true },
+        { icon: '🚍', busId: `#${bus2Id}`, eta: b2.eta, isPrimary: false },
+        { icon: '🚍', busId: `#${bus3Id}`, eta: b3.eta, isPrimary: false }
       ]);
     };
 
@@ -446,6 +454,7 @@ export class App implements AfterViewInit, OnDestroy {
       return {
         route: r,
         prog: 0.2 + (i * 0.3) % 0.8,
+        dir: 1,
         marker: L.marker(r.waypoints[0], { 
           icon: L.divIcon({ className: 'custom-bus-marker', html: '🚍', iconSize: [28, 28] }) 
         }).addTo(this.map)
@@ -459,8 +468,10 @@ export class App implements AfterViewInit, OnDestroy {
         const wps = p.route.waypoints;
         const maxSeg = wps.length - 1;
 
-        p.prog += 0.03; 
-        if (p.prog >= 1.0) p.prog = 0.0;
+        // Slow simulation: progress step of 0.004
+        p.prog += 0.004 * p.dir; 
+        if (p.prog >= 1.0) { p.prog = 1.0; p.dir = -1; }
+        else if (p.prog <= 0.0) { p.prog = 0.0; p.dir = 1; }
 
         const segIdx = Math.floor(p.prog * maxSeg);
         const subProg = (p.prog * maxSeg) % 1;
@@ -469,7 +480,7 @@ export class App implements AfterViewInit, OnDestroy {
 
         const lat = s[0] + (e[0] - s[0]) * subProg;
         const lng = s[1] + (e[1] - s[1]) * subProg;
-        const remRatio = 1.0 - p.prog;
+        const remRatio = Math.max(0.04, p.dir === 1 ? (1.0 - p.prog) : p.prog);
         const eta = Math.max(1, Math.round(remRatio * p.route.totalMin));
 
         p.marker.setLatLng([lat, lng]).bindPopup(`<b>Bus #${p.route.busId} (${p.route.id})</b><br>ETA: ${eta} min`);
