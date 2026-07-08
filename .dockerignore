@@ -1,0 +1,10 @@
+.git
+.gradle
+.idea
+.kotlin
+build
+angular-app/node_modules
+angular-app/dist
+angular-app/.angular
+backend/app/build
+backend/.gradle

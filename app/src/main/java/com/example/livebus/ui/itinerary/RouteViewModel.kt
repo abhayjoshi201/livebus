@@ -17,6 +17,7 @@ import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 import javax.inject.Inject
 
+import com.example.livebus.BuildConfig
 import com.example.livebus.data.TransitRepository
 import io.reactivex.disposables.Disposable
 
@@ -32,7 +33,7 @@ class RouteViewModel @Inject constructor(
     private val transitRepository: TransitRepository
 ) : ViewModel() {
 
-    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws-livebus")
+    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BuildConfig.WEBSOCKET_URL)
     private val compositeDisposable = CompositeDisposable()
     private var routeDisposable: Disposable? = null
 

@@ -1,0 +1,66 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  GCP_PROJECT_ID: "delta-heading-455916-c2"
+  GCP_REGION: "us-central1"
+  GCP_ZONE: "us-central1-a"
+  AR_REPO_NAME: "livebus-repo"
+  AR_IMAGE_NAME: "livebus-app"
+  GKE_CLUSTER_NAME: "livebus-cluster"
+
+build-image:
+  stage: build
+  image: docker:24.0.9
+  services:
+    - docker:24.0.9-dind
+  only:
+    - main
+  before_script:
+    # Authenticate with Google Cloud using a Service Account Key stored in GCP_SERVICE_KEY
+    - echo "$GCP_SERVICE_KEY" > gcp-key.json
+    - cat gcp-key.json | docker login -u _json_key --password-stdin https://us-central1-docker.pkg.dev
+  script:
+    - export IMAGE_TAG="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}"
+    - export IMAGE_LATEST="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest"
+    - docker build -t $IMAGE_TAG -t $IMAGE_LATEST .
+    - docker push $IMAGE_TAG
+    - docker push $IMAGE_LATEST
+  after_script:
+    - rm -f gcp-key.json
+
+deploy-gke:
+  stage: deploy
+  image: google/cloud-sdk:468.0.0-alpine
+  only:
+    - main
+  before_script:
+    # Install kubectl, GKE auth plugin, and gettext (for envsubst)
+    - gcloud components install kubectl gke-gcloud-auth-plugin --quiet
+    - apk add --no-cache gettext
+    - echo "$GCP_SERVICE_KEY" > gcp-key.json
+    - gcloud auth activate-service-account --key-file=gcp-key.json
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud container clusters get-credentials $GKE_CLUSTER_NAME --zone=$GCP_ZONE
+  script:
+    # Update the container image in the livebus-app.yaml deployment manifest to use the new build tag
+    - sed -i "s|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}|g" kubernetes/livebus-app.yaml
+    
+    # Generate secrets file from template
+    - envsubst < kubernetes/livebus-secrets.yaml.template > kubernetes/livebus-secrets.yaml
+
+    # Apply all kubernetes manifests (Secret, DB, RabbitMQ, App, Gateway)
+    - kubectl apply -f kubernetes/livebus-secrets.yaml
+    - kubectl apply -f kubernetes/postgres-db.yaml
+    - kubectl apply -f kubernetes/rabbitmq.yaml
+    - kubectl apply -f kubernetes/livebus-app.yaml
+    - kubectl apply -f kubernetes/livebus-gateway.yaml
+    
+    # Clean up generated secrets file
+    - rm -f kubernetes/livebus-secrets.yaml
+    
+    # Verify deployment rollout status
+    - kubectl rollout status deployment/livebus-app
+  after_script:
+    - rm -f gcp-key.json

@@ -6,6 +6,7 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 val mapsApiKey: String = localProperties.getProperty("MAPS_API_KEY", "")
+val webSocketUrl: String = localProperties.getProperty("WEBSOCKET_URL", "ws://10.0.2.2:8080/ws-livebus")
 
 plugins {
     id("com.android.application")
@@ -28,6 +29,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
         buildConfigField("String", "MAPS_API_KEY", "\"$mapsApiKey\"")
+        buildConfigField("String", "WEBSOCKET_URL", "\"$webSocketUrl\"")
     }
 
     buildTypes {
