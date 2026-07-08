@@ -1,79 +1,55 @@
-# GEHU LiveBus: College Transit Tracking System
+# 🎓 LiveBus: College Transit Tracking System
 
-**GEHU LiveBus** is an end-to-end real-time bus GPS tracking and telemetry monitoring system customized for the students, faculty, and shuttle drivers of **Graphic Era Hill University (GEHU)**.
+[![Android](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
+[![Angular](https://img.shields.io/badge/Platform-Angular-red.svg)](https://angular.dev)
+[![Spring Boot](https://img.shields.io/badge/Backend-Spring_Boot-brightgreen.svg)](https://springboot.io)
 
-The application serves three active campuses located in **Dehradun**, **Bhimtal**, and **Haldwani**, helping commuters track shuttles, get dynamic arrival estimates, and helping administrators dispatch alerts during delays.
+**LiveBus** is a premium, real-time bus tracking and telemetry system customized for university students, faculty, and shuttle drivers.
 
----
-
-## ⚠️ Problem Statement
-
-University shuttle scheduling faces critical operational challenges in regional environments like Dehradun, Bhimtal, and Haldwani:
-* **Hilly Terrains & Weather Inclemencies**: Hilly corridors are highly susceptible to heavy rain, seasonal fog, landslides, and road constructions. This causes severe, unpredictable delays that traditional static timetables cannot account for.
-* **Blind Commuting**: Students and faculty wait blindly at shuttle checkpoints, having no real-time visibility into whether their assigned bus is ahead of schedule, running late, or already full.
-* **Disconnected Operations**: Shuttle drivers lack direct channels to report traffic delays, crowding alerts, or critical emergency distress signals back to central dispatch administrators and commuters.
+Serving three active campuses in **Dehradun**, **Bhimtal**, and **Haldwani**, it helps commuters track active shuttle buses, receive dynamic arrival estimates, and provides administrators with real-time fleet management capabilities.
 
 ---
 
-## ✨ Core Features
-
-### 1. Passenger Commuter Portal (Android & Web)
-* **Real-time Map Visualizer**: Interactive map (using Leaflet on Web and Google/MapLibre on Android) displaying the live movements of campus buses.
-* **Campus Hub Switcher**: Dropdown selector to dynamically swap between **Dehradun**, **Bhimtal**, and **Haldwani** campuses. Selecting a campus instantly updates the corresponding route catalog, stops, and coordinates.
-* **Suggested Routes Grid**: Quick-access cards representing different campus routes, showing their destination and active transit status (e.g. `"On Time"`, `"Delayed"`).
-* **Itinerary Stop Timeline**: Displays the list of stops along the route corridor (identifying transit checkpoints and final alighting depots).
-* **Live Arrival Estimator (ETA)**: Calculates the remaining distance (in km) and estimated minutes until arrival.
-* **Mock Ticketing & Alerts**: Allows passengers to purchase/view boarding passes and toggling arrival alert notifications.
-
-### 2. Driver & Operator Portal (Android App)
-* **Duty Setup Console**: Allows drivers to choose their assigned campus route and register their specific bus vehicle number (e.g., `UA-07-TA-2024`).
-* **Telemetry Broadcast Engine**: Once the shift starts, automatically sends live JSON GPS coordinates payloads to the WebSocket broker every 3 seconds to update the passenger maps.
-* **Dispatch Alerts**: Quick-reporting buttons to broadcast delays (e.g., `🟠 Traffic Delay +5m`) or high passenger density (`🔵 Crowd alerts`) to the dispatch center.
-* **Emergency Distress (SOS)**: A single-tap SOS button that publishes an emergency broadcast signal to the fleet control console.
-
-### 3. Administrator Console (Angular Web Portal)
-* **Route Registry Manager**: Tab to add new campus routes (inputting ID, name, destination, description, card color theme, and durations) or decommission obsolete ones.
-* **Fleet Catalog**: List all registered campus shuttle vehicles.
-* **Service Advisory Broadcaster**: An alert publisher to broadcast real-time weather alerts or traffic delays to the main passenger home screens.
-
-### 4. Enterprise Backend Services (Spring Boot Server)
-* **SockJS & STOMP Message Broker**: Relays coordinate messages from active driver devices to passenger browsers and mobile clients in sub-second latency.
-* **PostgreSQL Persistence**: Saves and updates configurations for buses, routes, and coordinates.
-* **Spring Security Configurations**: Locks down administrative routes (`/api/admin/**`) and driver shifts (`/api/driver/**`) using role checks and secure password encryption.
+> [!WARNING]
+> ### ⛰️ Operational Challenges in Hilly Terrains
+> University shuttle scheduling faces critical environmental hazards in regions like Dehradun, Bhimtal, and Haldwani:
+> * **Unpredictable Delays**: Hilly corridors are highly susceptible to heavy rain, seasonal fog, landslides, and road construction. Static timetables are obsolete.
+> * **Blind Commuting**: Passengers often wait at checkpoints without any visibility of whether their shuttle is delayed, full, or ahead of schedule.
+> * **Disconnected Fleet**: Drivers lack quick mechanisms to report traffic bottlenecks, crowding alerts, or emergency signals to central dispatch.
 
 ---
 
 ## 🏛️ System Architecture
 
-The ecosystem consists of three main components:
-1. **Spring Boot Backend**: Serves REST configuration endpoints, handles authentication, and acts as the SockJS/STOMP WebSocket message broker for real-time GPS coordinates.
-2. **Angular Web Portal**: A web interface featuring Leaflet Maps for live bus routing and a tabbed **Admin Control Panel** to register new routes, manage fleet vehicles, and broadcast advisory alerts.
-3. **Android Mobile Application**: A multi-role Compose application:
-   * **Passenger Mode**: A dashboard with interactive maps, estimated arrival times (ETA), nearest stops lists, and local alert settings.
-   * **Driver Mode**: A shift dashboard for selecting routes and vehicles, broadcasting real-time coordinates, and reporting delays or emergency SOS signals.
+The ecosystem consists of three unified components:
+1. **Spring Boot Backend**: Serves REST configuration APIs, manages user sessions, and acts as the SockJS/STOMP WebSocket message broker for GPS streams.
+2. **Angular Web Portal**: Leaflet Maps-based tracking for commuters alongside a secure **Admin Management Panel** to register new routes, audit fleet vehicles, and broadcast bulletins.
+3. **Android App (Jetpack Compose)**: Supports dual-roles:
+   * **Commuter Mode**: Interactive maps, live arrival estimates (ETA), nearest stops lists, and local alert settings.
+   * **Driver Mode**: Shift dashboard to select active routes and buses, broadcast location updates, and log traffic bottlenecks or distress SOS signals.
 
 ```mermaid
 graph TD
-    subgraph Publisher [Telemetry Producer]
-        Driver[Driver Android App]
+    subgraph Publisher ["Telemetry Producer"]
+        Driver["🚍 Driver Android App"]
     end
 
-    subgraph Broker [Spring Boot Backend Server]
-        WS[STOMP WebSocket Broker]
-        REST[REST Configuration APIs]
-        DB[(PostgreSQL Database)]
+    subgraph Broker ["Spring Boot Backend Server"]
+        WS["📡 STOMP WebSocket Broker"]
+        REST["🔌 REST Configuration APIs"]
+        DB[("🗄️ PostgreSQL Database")]
     end
 
-    subgraph Subscribers [Commuter Clients]
-        Passenger[Passenger Android App]
-        WebPortal[Angular Web Portal / Admin Panel]
+    subgraph Subscribers ["Commuter Clients"]
+        Passenger["📱 Passenger Android App"]
+        WebPortal["💻 Angular Web Portal / Admin Panel"]
     end
 
     %% Flows
-    Driver -->|Publishes Telemetry via STOMP| WS
-    WS -->|Streams live GPS via STOMP| Passenger
-    WS -->|Streams live GPS via STOMP| WebPortal
-    WebPortal -->|Updates Routes/Buses via REST| REST
+    Driver -->|Publishes Location| WS
+    WS -->|Streams live GPS| Passenger
+    WS -->|Streams live GPS| WebPortal
+    WebPortal -->|Configures Routes/Buses| REST
     REST -->|Persists configurations| DB
 ```
 
@@ -81,24 +57,38 @@ graph TD
 
 ## 📂 Project Structure
 
-* **`app/`**: Native Android mobile application (Jetpack Compose + Kotlin + Hilt).
-  * `ui/home/`: Commuter homepage with campus selectors and suggested routes.
-  * `ui/tracking/`: Map layer and WebSocket live tracking engine.
-  * `ui/driver/`: Driver shift setup, GPS transmitter, and incident logger.
-  * `ui/theme/`: Customized GEHU brand palette (Navy, Gold, Orange).
-* **`backend/`**: Spring Boot application (Java 17 + Gradle).
-  * `livebus/admin/`: Controllers and database repositories for Route, Stop, and Bus configurations.
-  * `livebus/driver/`: Trip controllers mapping active driver shifts.
-  * `livebus/security/`: Security configs and user auth controllers.
-* **`angular-app/`**: Angular Web application.
-  * `app/app.ts`: State managers, Leaflet map renderer, and simulated fallback loops.
-  * `app/app.html`: Layout container for sliding panel views, map overlays, and admin tabs.
+```
+├── app/                  # Android Mobile Application (Jetpack Compose + Kotlin + Hilt)
+│   ├── ui/auth/          # Unified portal login screen and credentials handlers
+│   ├── ui/home/          # Passenger homepage, route suggestions, and campus selectors
+│   ├── ui/tracking/      # Map layer and WebSocket live tracking engine
+│   └── ui/driver/        # Shift management, telemetry broadcaster, and incident reporter
+├── backend/              # Spring Boot Backend Service (Java 17 + Gradle)
+│   ├── livebus/admin/    # Controllers, services, and repositories for Route, Stop, and Bus
+│   ├── livebus/driver/   # Telemetry and active driver shift mapping APIs
+│   └── livebus/security/ # Spring Security, User details service, and auth controllers
+└── angular-app/          # Angular Web Application (Angular 17 + Leaflet + Tailwind CSS)
+    ├── app/app.ts        # State management, Leaflet renderer, and mock coordinate loops
+    └── app/app.html      # UI layouts, sliding panel transitions, and Admin console tabs
+```
 
 ---
 
-## 🗄️ Database & Schema Specifications
+## 🔐 Default Access Credentials
 
-The backend connects to a **PostgreSQL** database running on port **`5433`** (`jdbc:postgresql://localhost:5433/livebus`).
+The database seeder automatically initializes the system with testing accounts:
+
+| Role | Username | Password | Access Details |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin` | `admin123` | Unlocks Angular Admin Tabs / Management REST endpoints |
+| **Bus Driver** | `driver` | `driver123` | Access to GPS telemetry broadcast and incident console |
+| **Commuter / Student** | *Any ID* (e.g. `10001`) | *Same as ID* (e.g. `10001`) | Dynamic local registration as `ROLE_PASSENGER` |
+
+---
+
+## 🗄️ Database Schema Specification
+
+The backend connects to **PostgreSQL** (running on port `5433` by default):
 
 ```
   +--------------+        +---------------+        +-------------+
@@ -108,31 +98,22 @@ The backend connects to a **PostgreSQL** database running on port **`5433`** (`j
   +--------------+        +---------------+        +-------------+
 ```
 
-Hibernate Automatically generates the following schemas:
-* **`Route` Table**: Stores itinerary details.
-  * `id` (VARCHAR, Primary Key) - e.g., `"D-1"`
-  * `routeName` (VARCHAR) - e.g., `"ROUTE D-1"`
-  * `destination` (VARCHAR) - e.g., `"GEHU Clement Town Campus"`
-  * `direction` (VARCHAR) - e.g., `"Clement Town Bus Service"`
-* **`Stop` Table**: Stores geographical coordinates of boarding checkpoints.
-  * `id` (BIGINT, Primary Key)
-  * `name` (VARCHAR) - e.g., `"ISBT Terminal"`
-  * `latitude` (DOUBLE) - e.g., `30.2872`
-  * `longitude` (DOUBLE) - e.g., `77.9984`
-* **`Bus` Table**: Identifies shuttle inventory.
-  * `id` (VARCHAR, Primary Key) - e.g., `"UA-07-TA-2024"`
-  * `capacity` (INT)
+### Schemas
+* **`Route`**: Stores campus itinerary details (`id`, `route_name`, `destination`, `direction`).
+* **`Stop`**: Stores geographical checkpoints (`id`, `name`, `latitude`, `longitude`).
+* **`Bus`**: Identifies shuttle inventory (`id`, `capacity`).
+* **`User`**: Secure accounts (`id`, `username`, `password_hash`, `role`).
 
 ---
 
-## 📡 STOMP WebSocket API Reference
+## 📡 WebSocket API Reference
 
 ### Channels & Endpoints
-* **Handshake Endpoint**: `ws://localhost:8080/ws-livebus` (SockJS fallback enabled)
-* **Driver Publish Channel**: `/app/driver/update`
-* **Passenger Subscription Channel**: `/topic/route/{routeId}` (e.g. `/topic/route/D-1`)
+* **Connection Handshake**: `ws://localhost:8080/ws-livebus` (SockJS fallback enabled)
+* **Driver Telemetry Broadcast**: `/app/driver/update`
+* **Passenger Telemetry Subscription**: `/topic/route/{routeId}` (e.g. `/topic/route/D-1`)
 
-### LocationUpdate Payload (JSON format)
+### Payload Example (JSON)
 ```json
 {
   "busId": "UA-07-TA-2024",
@@ -145,109 +126,55 @@ Hibernate Automatically generates the following schemas:
 
 ---
 
-## 🔐 Spring Security & Access Control
-
-The backend implements role-based security configurations using **Spring Security** in [SecurityConfig.java](file:///usr/local/google/home/abhayjoshi/AndroidStudioProjects/LiveBus/backend/app/src/main/java/livebus/security/config/SecurityConfig.java):
-
-* **Authorization Rules**:
-  * **`ROLE_ADMIN`**: Required to call administration configuration REST endpoints (`/api/admin/**`).
-  * **`ROLE_DRIVER`**: Required to execute driver-specific updates (`/api/driver/**`).
-  * **Permit All**: Public assets (`.js`, `.css`, `index.html`), authentication endpoint (`/api/auth/login`), passenger data queries (`/api/passenger/**`), and the WebSocket handler (`/ws-livebus/**`) are configured to bypass security.
-* **Cryptography**: Password hashing and verification are performed using the **BCrypt** hashing algorithm.
-
----
-
 ## 🚀 Setup & Installation Guide
 
-If you want to clone this repository and run the end-to-end system on your local workstation, follow these steps:
-
 ### 📋 Prerequisites
-Make sure you have the following installed on your machine:
-1. **Java Development Kit (JDK 17 or higher)**
-2. **Node.js (v18+) & npm**
-3. **PostgreSQL** (running on port `5433` by default)
-4. **Android Studio** (Koala or newer, for running the Android mobile application)
-5. **Android SDK & Emulator** (configured via SDK Manager in Android Studio)
+* **Java Development Kit (JDK 17 or higher)**
+* **Node.js (v18+) & npm**
+* **PostgreSQL** (running on port `5433`)
+* **Android Studio** (Koala or newer) with Android SDK and Emulator
 
----
-
-### 1. Database Configuration
-1. Open your PostgreSQL client and create a database named `livebus`:
+### 1. Database Initialization
+1. Create your database:
    ```sql
    CREATE DATABASE livebus;
    ```
-2. Verify the server is running on port `5433`:
+2. Verify connectivity:
    ```bash
    pg_isready -h localhost -p 5433
    ```
-3. *(Optional)* Modify `backend/app/src/main/resources/application.properties` if you need to update the database username/password:
-   ```properties
-   spring.datasource.username=your_postgres_username
-   spring.datasource.password=your_postgres_password
-   ```
-
----
 
 ### 2. Spring Boot Backend Server
-To build and start the server:
+Compile and start the server on port `8080`:
 ```bash
-# From the project root directory
 ./backend/gradlew -p backend :app:bootRun
 ```
-The server will start up on port `8080`.
-
----
 
 ### 3. Angular Web Portal
-You can run the web portal in live-reload development mode, or compile it to be served directly from the Spring Boot backend assets resource folder:
+You can run the web portal in live-reload development mode, or compile it to be served directly from the Spring Boot backend static directory:
 
-#### Live Development Mode (Port 4200)
-```bash
-cd angular-app
-npm install
-npm run start
-```
-#### Production Build & Sync (Served via Spring Boot on port 8080)
-If you want the backend to serve the web interface directly on **`http://localhost:8080/index.html`**:
+#### Production Build & Sync (Served via port 8080)
 ```bash
 cd angular-app
 npm install
 npm run build:sync
 ```
-
----
+Open **`http://localhost:8080`** in your browser.
 
 ### 4. Android Mobile Application
-1. **Open in Android Studio**: Launch Android Studio and choose **Open an Existing Project**, selecting the root directory of this repository. Let Gradle sync and download dependencies.
-2. **Start the Emulator**:
-   Launch your preferred Android Virtual Device (AVD) using the Device Manager or command line:
+1. Open the project root folder in **Android Studio**.
+2. Start your active virtual device emulator.
+3. Build and install the APK on the emulator:
    ```bash
-   # List available emulators
-   ~/Android/Sdk/emulator/emulator -list-avds
-
-   # Start the emulator (replace Pixel_10_Pro with your emulator name)
-   ~/Android/Sdk/emulator/emulator -avd Pixel_10_Pro &
-   ```
-3. **Compile & Deploy**:
-   Build the debug application and install it on the active emulator:
-   ```bash
-   ./gradlew installDebug && ~/Android/Sdk/platform-tools/adb shell am start -n com.example.livebus/.MainActivity
+   ./gradlew installDebug && adb shell am start -n com.example.livebus/.MainActivity
    ```
 
 ---
 
-## 🔧 Troubleshooting Guide
-
-### 1. Driver Location Mismatches
-If the map displays "Standby" and passenger devices are not receiving updates, verify:
-* The driver application has started location broadcasting (indicated by a green blinking status light in the console).
-* The **Stomp Client** URL path matches on both sides:
-  * Backend: `WebSocketConfig.java` listens to `/ws-livebus`.
-  * Mobile client: `LiveTrackingViewModel.kt` connects to `ws://10.0.2.2:8080/ws-livebus`.
-
-### 2. Android Emulator Loopback
-When testing the Android app inside the emulator, **`localhost`** refers to the emulator's internal network. 
-* To connect to the Spring Boot backend running on your developer host machine, make sure you configure the WebSocket connection to use the loopback IP **`10.0.2.2`** instead of `localhost`.
+> [!NOTE]
+> ### 💡 Troubleshooting & Sandbox Configuration
+> * **Cleartext HTTP**: Cleartext connections to custom host IPs are permitted via the updated `AndroidManifest.xml` config policy.
+> * **Emulator Loopback**: When debugging on the Android emulator, use **`10.0.2.2`** instead of `localhost` in your properties to reach the server on your development machine.
 
 ---
 

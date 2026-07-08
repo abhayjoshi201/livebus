@@ -39,26 +39,26 @@ class TransitRepository @Inject constructor() {
         TransitCity(
             id = "DDN",
             name = "Dehradun",
-            agencyName = "GEHU DDN",
-            fullAgencyTitle = "GEHU Dehradun Campus Bus Service",
+            agencyName = "DDN Campus",
+            fullAgencyTitle = "Dehradun Campus Bus Service",
             centerLatLng = LatLng(30.2721, 78.0084),
-            defaultLocationName = "GEHU Clement Town Campus"
+            defaultLocationName = "Clement Town Campus"
         ),
         TransitCity(
             id = "BHT",
             name = "Bhimtal",
-            agencyName = "GEHU BHT",
-            fullAgencyTitle = "GEHU Bhimtal Campus Bus Service",
+            agencyName = "BHT Campus",
+            fullAgencyTitle = "Bhimtal Campus Bus Service",
             centerLatLng = LatLng(29.3479, 79.5463),
-            defaultLocationName = "GEHU Bhimtal Campus"
+            defaultLocationName = "Bhimtal Campus"
         ),
         TransitCity(
             id = "HLD",
             name = "Haldwani",
-            agencyName = "GEHU HLD",
-            fullAgencyTitle = "GEHU Haldwani Campus Bus Service",
+            agencyName = "HLD Campus",
+            fullAgencyTitle = "Haldwani Campus Bus Service",
             centerLatLng = LatLng(29.2181, 79.5130),
-            defaultLocationName = "GEHU Haldwani Campus"
+            defaultLocationName = "Haldwani Campus"
         )
     )
 
@@ -83,18 +83,18 @@ class TransitRepository @Inject constructor() {
             cityId = "DDN",
             routeName = "ROUTE D-1",
             displayName = "Route D-1",
-            destination = "GEHU Clement Town Campus",
+            destination = "Clement Town Campus",
             direction = "Clement Town Bus Service",
             busId = "UA-07-TA-2024",
             stompTopic = "/topic/route/D-1",
             initialBusLocation = LatLng(30.2872, 77.9984), // ISBT
-            userStopLocation = LatLng(30.2700, 78.0075),   // GEHU Campus
+            userStopLocation = LatLng(30.2700, 78.0075),   // Campus
             waypoints = DehradunRoutes.d1Waypoints,
             stops = listOf(
                 Stop("1", "ISBT Terminal", 0.0, 0),
                 Stop("2", "Turner Road Junction", 2.2, 5),
                 Stop("3", "Subhash Nagar Chowk", 4.1, 10),
-                Stop("4", "GEHU Clement Town Campus", 5.5, 15)
+                Stop("4", "Clement Town Campus", 5.5, 15)
             )
         ),
         "D-2" to TransitRoute(
@@ -102,19 +102,19 @@ class TransitRepository @Inject constructor() {
             cityId = "DDN",
             routeName = "ROUTE D-2",
             displayName = "Route D-2",
-            destination = "GEHU Clement Town Campus",
+            destination = "Clement Town Campus",
             direction = "Dehradun City Service",
             busId = "UA-07-TA-4050",
             stompTopic = "/topic/route/D-2",
             initialBusLocation = LatLng(30.3244, 78.0411), // Clock Tower
-            userStopLocation = LatLng(30.2700, 78.0075),   // GEHU Campus
+            userStopLocation = LatLng(30.2700, 78.0075),   // Campus
             waypoints = DehradunRoutes.d2Waypoints,
             stops = listOf(
                 Stop("11", "Clock Tower", 0.0, 0),
                 Stop("12", "Prince Chowk", 1.8, 6),
                 Stop("13", "Saharanpur Road Crossing", 3.2, 10),
                 Stop("14", "ISBT Dehradun", 5.8, 18),
-                Stop("15", "GEHU Clement Town Campus", 8.2, 25)
+                Stop("15", "Clement Town Campus", 8.2, 25)
             )
         ),
         // BHIMTAL (BHT)
@@ -123,7 +123,7 @@ class TransitRepository @Inject constructor() {
             cityId = "BHT",
             routeName = "ROUTE B-1",
             displayName = "Route B-1",
-            destination = "GEHU Bhimtal Campus",
+            destination = "Bhimtal Campus",
             direction = "Haldwani-Bhimtal Hill Service",
             busId = "UA-04-TC-8821",
             stompTopic = "/topic/route/B-1",
@@ -135,7 +135,7 @@ class TransitRepository @Inject constructor() {
                 Stop("22", "Kathgodam Rly Station", 6.2, 14),
                 Stop("23", "Ranibagh Toll Plaza", 10.1, 22),
                 Stop("24", "Bhimtal Lake Crossing", 20.2, 40),
-                Stop("25", "GEHU Bhimtal Campus", 22.0, 45)
+                Stop("25", "Bhimtal Campus", 22.0, 45)
             )
         ),
         // HALDWANI (HLD)
@@ -144,7 +144,7 @@ class TransitRepository @Inject constructor() {
             cityId = "HLD",
             routeName = "ROUTE H-1",
             displayName = "Route H-1",
-            destination = "GEHU Haldwani Campus",
+            destination = "Haldwani Campus",
             direction = "Lalkuan-Haldwani Connector",
             busId = "UA-04-TB-5340",
             stompTopic = "/topic/route/H-1",
@@ -155,7 +155,7 @@ class TransitRepository @Inject constructor() {
                 Stop("31", "Lalkuan Junction", 0.0, 0),
                 Stop("32", "Motahaldu Stop", 5.5, 10),
                 Stop("33", "Bareilly Road Crossing", 9.1, 17),
-                Stop("34", "GEHU Haldwani Campus", 10.5, 20)
+                Stop("34", "Haldwani Campus", 10.5, 20)
             )
         )
     )

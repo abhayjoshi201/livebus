@@ -49,7 +49,7 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "GEHU LiveBus",
+                    text = "LiveBus",
                     color = Color(0xFFFACC15), // Gold
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold

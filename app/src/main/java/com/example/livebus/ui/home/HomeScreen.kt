@@ -50,7 +50,7 @@ import androidx.compose.foundation.clickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "DDN Campus", "Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "Clement Town Campus"),
     allCities: List<TransitCity> = emptyList(),
     onCitySelect: (String) -> Unit = {},
     availableRoutes: List<TransitRoute> = emptyList(),
@@ -80,7 +80,7 @@ fun HomeScreen(
                     .padding(24.dp)
             ) {
                 Text(
-                    text = "Select GEHU Campus",
+                    text = "Select Campus Hub",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -522,7 +522,7 @@ fun RouteCard(routeName: String, destination: String, statusColor: Color, onClic
 
 @Composable
 fun PinnedStopsSection(
-    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "DDN Campus", "Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "Clement Town Campus"),
     routes: List<TransitRoute> = emptyList(),
     onStopClick: (String) -> Unit = {}
 ) {
@@ -559,7 +559,7 @@ fun PinnedStopsSection(
 
 @Composable
 fun NearestStopsSection(
-    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "GEHU DDN", "GEHU Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "GEHU Clement Town Campus"),
+    selectedCity: TransitCity = TransitCity("DDN", "Dehradun", "DDN Campus", "Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "Clement Town Campus"),
     routes: List<TransitRoute> = emptyList(),
     onStopClick: (String) -> Unit = {}
 ) {
