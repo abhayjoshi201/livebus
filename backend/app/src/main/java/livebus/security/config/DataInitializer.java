@@ -30,5 +30,12 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
             System.out.println("Default admin user created successfully.");
         }
+
+        // Seed default Driver user if none exists
+        if (userRepository.findByUsername("driver").isEmpty()) {
+            User driver = new User("driver", passwordEncoder.encode("driver123"), Role.DRIVER);
+            userRepository.save(driver);
+            System.out.println("Default driver user created successfully.");
+        }
     }
 }
