@@ -28,29 +28,29 @@ private val LocalTransitColors = staticCompositionLocalOf {
 }
 
 private val DarkColorPalette = darkColorScheme(
-    primary = GehuGold,
-    secondary = GehuOrange,
-    tertiary = GehuNavy,
-    background = GehuDarkBg,
-    surface = GehuDarkSurface,
-    onPrimary = GehuDarkBg,
-    onSecondary = GehuDarkBg,
+    primary = BrandGold,
+    secondary = BrandOrange,
+    tertiary = BrandNavy,
+    background = BrandDarkBg,
+    surface = BrandDarkSurface,
+    onPrimary = BrandDarkBg,
+    onSecondary = BrandDarkBg,
     onTertiary = Color.White,
     onBackground = Color.White,
     onSurface = Color.White
 )
 
 private val LightColorPalette = lightColorScheme(
-    primary = GehuNavy,
-    secondary = GehuOrange,
-    tertiary = GehuGold,
-    background = GehuLightBg,
+    primary = BrandNavy,
+    secondary = BrandOrange,
+    tertiary = BrandGold,
+    background = BrandLightBg,
     surface = Color.White,
     onPrimary = Color.White,
     onSecondary = Color.White,
-    onTertiary = GehuNavy,
-    onBackground = GehuNavy,
-    onSurface = GehuNavy
+    onTertiary = BrandNavy,
+    onBackground = BrandNavy,
+    onSurface = BrandNavy
 )
 
 @Composable
