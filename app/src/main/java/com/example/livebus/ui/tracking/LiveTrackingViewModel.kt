@@ -16,6 +16,7 @@ import org.json.JSONObject
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
+import com.example.livebus.BuildConfig
 import com.example.livebus.data.TransitRepository
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Job
@@ -41,7 +42,7 @@ class LiveTrackingViewModel @Inject constructor(
     private val transitRepository: TransitRepository
 ) : ViewModel() {
 
-    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://10.0.2.2:8080/ws-livebus")
+    private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BuildConfig.WEBSOCKET_URL)
     private val compositeDisposable = CompositeDisposable()
     private var routeDisposable: Disposable? = null
     private var simulationJob: Job? = null

@@ -38,6 +38,7 @@ dependencies {
 
     // 4. WebSockets (For real-time location streaming later)
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
 
     // 5. Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -21,3 +21,7 @@ bin/
 *.class
 .agent/
 
+# Kubernetes Secrets
+kubernetes/livebus-secrets.yaml
+gitlab-variables.env
+gitlab-key.json

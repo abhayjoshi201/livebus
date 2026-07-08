@@ -248,3 +248,38 @@ If the map displays "Standby" and passenger devices are not receiving updates, v
 ### 2. Android Emulator Loopback
 When testing the Android app inside the emulator, **`localhost`** refers to the emulator's internal network. 
 * To connect to the Spring Boot backend running on your developer host machine, make sure you configure the WebSocket connection to use the loopback IP **`10.0.2.2`** instead of `localhost`.
+
+---
+
+## ☁️ Cloud & GKE Production Deployment
+
+The ecosystem supports production deployments to **Google Kubernetes Engine (GKE)** with enterprise integrations.
+
+### 1. GKE Production Architecture
+* **GKE Gateway API**: Exposes the system to the internet via GKE standard Managed HTTP Application Load Balancers on port `80`.
+* **RabbitMQ STOMP Relay**: Runs as a cluster service to act as a centralized broker relay, enabling horizontal scaling of the Spring Boot application pods.
+* **PostgreSQL with PostGIS**: High-performance spatial database container (`postgis/postgis`) for GPS coordinate calculations.
+* **BestEffort Scheduling**: Resource requests are optimized to run within tight CPU quotas on single-node sandbox clusters.
+
+### 2. Google Secret Manager & CSI Sync
+Instead of hardcoding credentials, GKE uses native **Workload Identity** and **GKE Secrets Store CSI Driver** to sync secrets directly from GCP:
+1. Credentials (DB, RabbitMQ) are stored in **Google Secret Manager**.
+2. A `SecretProviderClass` utilizing the GKE CSI driver `secrets-store-gke.csi.k8s.io` mounts these keys to GKE pods.
+3. The GKE Secret Sync controller automatically generates a standard Kubernetes Secret (`livebus-db-secrets`) from these mounts on-the-fly.
+
+### 3. GitLab CI/CD Pipeline
+An automated pipeline configuration ([.gitlab-ci.yml](file:///.gitlab-ci.yml)) builds the container images on commit push, pushes them to Google Artifact Registry, and deploys to GKE:
+* **Secrets Handling**: Pipeline credentials and GCP Service Account keys are stored securely inside GitLab CI/CD Variables.
+* **Manifests**: All GKE deployments reside in the [kubernetes/](file:///kubernetes) directory.
+
+### 4. Switching Client Environments
+Instead of modifying view model source code, Android clients dynamically resolve endpoints from **[local.properties](file:///local.properties)**:
+* **Local Development**:
+  ```properties
+  WEBSOCKET_URL=ws://10.0.2.2:8080/ws-livebus
+  ```
+* **GKE Production**:
+  ```properties
+  WEBSOCKET_URL=ws://<EXTERNAL-GATEWAY-IP>:80/ws-livebus
+  ```
+Then compile the application: `./gradlew installDebug`.

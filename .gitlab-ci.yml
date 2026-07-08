@@ -1,0 +1,83 @@
+stages:
+  - build
+  - deploy
+
+build-image:
+  stage: build
+  image: docker:24.0.9
+  services:
+    - docker:24.0.9-dind
+  only:
+    - main
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider
+  before_script:
+    - apk add --no-cache curl jq
+    # Exchange GitLab OIDC Token for Google STS federated token
+    - |
+      FED_TOKEN=$(curl -0 -s -X POST https://sts.googleapis.com/v1/token \
+        -H "Content-Type: application/json" \
+        -d "{\"audience\":\"//iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider\",\"grantType\":\"urn:ietf:params:oauth:grant-type:token-exchange\",\"requestedTokenType\":\"urn:ietf:params:oauth:token-type:access_token\",\"scope\":\"https://www.googleapis.com/auth/cloud-platform\",\"subjectToken\":\"$GITLAB_OIDC_TOKEN\",\"subjectTokenType\":\"urn:ietf:params:oauth:token-type:jwt\"}" \
+        | jq -r .access_token)
+    # Exchange federated token for service account access token
+    - |
+      GCP_ACCESS_TOKEN=$(curl -0 -s -X POST "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-ci-deployer@${GCP_PROJECT_ID}.iam.gserviceaccount.com:generateAccessToken" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $FED_TOKEN" \
+        -d "{\"scope\":[\"https://www.googleapis.com/auth/cloud-platform\"]}" \
+        | jq -r .accessToken)
+    # Log in to Google Artifact Registry
+    - echo "$GCP_ACCESS_TOKEN" | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
+  script:
+    - export IMAGE_TAG="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}"
+    - export IMAGE_LATEST="us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest"
+    - docker build -t $IMAGE_TAG -t $IMAGE_LATEST .
+    - docker push $IMAGE_TAG
+    - docker push $IMAGE_LATEST
+
+deploy-gke:
+  stage: deploy
+  image: google/cloud-sdk:468.0.0-alpine
+  only:
+    - main
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider
+  before_script:
+    # Install kubectl, GKE auth plugin, and gettext (for envsubst)
+    - gcloud components install kubectl gke-gcloud-auth-plugin --quiet
+    - apk add --no-cache gettext
+    
+    # Configure keyless workload identity login via credential config
+    - echo "$GITLAB_OIDC_TOKEN" > /tmp/oidc_token.txt
+    - |
+      gcloud iam workload-identity-pools create-cred-config \
+        projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider \
+        --service-account="gitlab-ci-deployer@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+        --output-file=/tmp/gcp_cred_config.json \
+        --credential-source-file=/tmp/oidc_token.txt
+    - export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=/tmp/gcp_cred_config.json
+    - gcloud config set project $GCP_PROJECT_ID
+    - gcloud container clusters get-credentials $GKE_CLUSTER_NAME --zone=$GCP_ZONE
+  script:
+    # Update the container image in the livebus-app.yaml deployment manifest to use the new build tag
+    - 'sed -i "s|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}|g" kubernetes/livebus-app.yaml'
+    
+    # Generate secrets file from template
+    - envsubst < kubernetes/livebus-secrets.yaml.template > kubernetes/livebus-secrets.yaml
+
+    # Apply all kubernetes manifests (Secret, DB, RabbitMQ, App, Gateway)
+    - kubectl apply -f kubernetes/livebus-secrets.yaml
+    - kubectl apply -f kubernetes/postgres-db.yaml
+    - kubectl apply -f kubernetes/rabbitmq.yaml
+    - kubectl apply -f kubernetes/livebus-app.yaml
+    - kubectl apply -f kubernetes/livebus-gateway.yaml
+    
+    # Clean up generated secrets file
+    - rm -f kubernetes/livebus-secrets.yaml
+    
+    # Verify deployment rollout status
+    - kubectl rollout status deployment/livebus-app
+  after_script:
+    - rm -f /tmp/oidc_token.txt /tmp/gcp_cred_config.json

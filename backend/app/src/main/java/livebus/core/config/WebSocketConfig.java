@@ -12,8 +12,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-      
-        config.enableSimpleBroker("/topic");
+        String rabbitMqHost = System.getenv("RABBITMQ_HOST");
+        if (rabbitMqHost != null && !rabbitMqHost.isEmpty()) {
+            int port = Integer.parseInt(System.getenv().getOrDefault("RABBITMQ_PORT", "61613"));
+            String user = System.getenv().getOrDefault("RABBITMQ_USERNAME", "guest");
+            String pass = System.getenv().getOrDefault("RABBITMQ_PASSWORD", "guest");
+            config.enableStompBrokerRelay("/topic")
+                  .setRelayHost(rabbitMqHost)
+                  .setRelayPort(port)
+                  .setClientLogin(user)
+                  .setClientPasscode(pass);
+        } else {
+            config.enableSimpleBroker("/topic");
+        }
     }
 
     @Override

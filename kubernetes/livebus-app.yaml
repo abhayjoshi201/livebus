@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: livebus-app
+  labels:
+    app: livebus-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: livebus-app
+  template:
+    metadata:
+      labels:
+        app: livebus-app
+    spec:
+      serviceAccountName: livebus-reader-ksa
+      containers:
+        - name: livebus-app
+          image: us-central1-docker.pkg.dev/delta-heading-455916-c2/livebus-repo/livebus-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/livebus
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: livebus-db-secrets
+                  key: database-user
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: livebus-db-secrets
+                  key: database-password
+            - name: RABBITMQ_HOST
+              value: rabbitmq
+            - name: RABBITMQ_PORT
+              value: "61613"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: livebus-db-secrets
+                  key: rabbitmq-user
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: livebus-db-secrets
+                  key: rabbitmq-password
+
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets"
+              readOnly: true
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store-gke.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "livebus-secret-provider"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: livebus-app
+  labels:
+    app: livebus-app
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      name: http
+  selector:
+    app: livebus-app
+  type: ClusterIP
