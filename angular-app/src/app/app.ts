@@ -111,7 +111,11 @@ export class App implements AfterViewInit, OnDestroy {
 
   readonly filteredRoutes = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
-    const routes = this.activeHub().routes;
+    const routes = [...this.activeHub().routes];
+    
+    // Prioritize by totalMin (time) ascending
+    routes.sort((a, b) => a.totalMin - b.totalMin);
+
     if (!q) return routes;
     return routes.filter(r => 
       r.name.toLowerCase().includes(q) || 
