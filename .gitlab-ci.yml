@@ -16,13 +16,13 @@ build-image:
     - apk add --no-cache curl jq
     # Exchange GitLab OIDC Token for Google STS federated token
     - |
-      FED_TOKEN=$(curl -0 -s -X POST https://sts.googleapis.com/v1/token \
+      FED_TOKEN=$(curl -sS -X POST https://sts.googleapis.com/v1/token \
         -H "Content-Type: application/json" \
         -d "{\"audience\":\"//iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider\",\"grantType\":\"urn:ietf:params:oauth:grant-type:token-exchange\",\"requestedTokenType\":\"urn:ietf:params:oauth:token-type:access_token\",\"scope\":\"https://www.googleapis.com/auth/cloud-platform\",\"subjectToken\":\"$GITLAB_OIDC_TOKEN\",\"subjectTokenType\":\"urn:ietf:params:oauth:token-type:jwt\"}" \
         | jq -r .access_token)
     # Exchange federated token for service account access token
     - |
-      GCP_ACCESS_TOKEN=$(curl -0 -s -X POST "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-ci-deployer@${GCP_PROJECT_ID}.iam.gserviceaccount.com:generateAccessToken" \
+      GCP_ACCESS_TOKEN=$(curl -sS -X POST "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/gitlab-ci-deployer@${GCP_PROJECT_ID}.iam.gserviceaccount.com:generateAccessToken" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $FED_TOKEN" \
         -d "{\"scope\":[\"https://www.googleapis.com/auth/cloud-platform\"]}" \
