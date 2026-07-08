@@ -185,6 +185,8 @@ class TransitRepository @Inject constructor() {
     }
 
     fun getRoutesForCurrentCity(): List<TransitRoute> {
-        return allRoutes.values.filter { it.cityId == _selectedCityId.value }
+        return allRoutes.values
+            .filter { it.cityId == _selectedCityId.value }
+            .sortedBy { it.stops.lastOrNull()?.estimatedMinutesFromStart ?: 9999 }
     }
 }
