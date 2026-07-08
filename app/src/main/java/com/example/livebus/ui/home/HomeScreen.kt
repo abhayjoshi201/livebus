@@ -329,7 +329,7 @@ fun ServiceAlertsBanner(onClick: () -> Unit = {}) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Severe Delay on Route 219 • Tap for Advisories",
+                    text = "Severe Delay on Route B-1 • Tap for Advisories",
                     color = Color.White,
                     fontWeight = FontWeight.Medium
                 )

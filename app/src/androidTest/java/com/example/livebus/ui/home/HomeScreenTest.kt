@@ -34,10 +34,9 @@ class HomeScreenTest {
             HomeScreen()
         }
         composeTestRule.onNodeWithText("Suggested Routes").assertExists()
-        composeTestRule.onAllNodesWithText("ROUTE 216W").assertCountEquals(2)
-        composeTestRule.onAllNodesWithText("IIIT Gachibowli").assertCountEquals(2)
-        composeTestRule.onNodeWithText("ROUTE 219").assertExists()
-        composeTestRule.onNodeWithText("Patancheru").assertExists()
+        composeTestRule.onAllNodesWithText("ROUTE D-1").assertCountEquals(1)
+        composeTestRule.onNodeWithText("ROUTE D-2").assertExists()
+        composeTestRule.onAllNodesWithText("Clement Town Ca").assertCountEquals(2)
     }
 
     @Test
