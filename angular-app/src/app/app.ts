@@ -102,6 +102,15 @@ export class App implements AfterViewInit, OnDestroy {
   readonly newRouteDist = signal<number>(5);
   readonly newBusId = signal<string>("");
 
+  // --- AUTHENTICATION STATE SIGNALS ---
+  readonly isLoggedIn = signal<boolean>(false);
+  readonly userRole = signal<string | null>(null);
+  readonly loginIsAdmin = signal<boolean>(false);
+  readonly loginUsername = signal<string>("");
+  readonly loginPassword = signal<string>("");
+  readonly loginError = signal<string | null>(null);
+  readonly loginLoading = signal<boolean>(false);
+
   // Computed state
   readonly activeHub = computed(() => this.hubs[this.currentCity()]);
   readonly activeRoute = computed(() => {
@@ -160,7 +169,9 @@ export class App implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       if (this.map) {
         this.map.invalidateSize();
-        this.startSimulation();
+        if (this.isLoggedIn()) {
+          this.startSimulation();
+        }
       }
     }, 250);
   }
@@ -232,6 +243,62 @@ export class App implements AfterViewInit, OnDestroy {
   triggerAlert() {
     const r = this.activeRoute();
     alert(`🔔 Arrival Alert Activated for ${r.name}!\nYou will receive a browser notification when Bus #${r.busId} is 2 minutes away from your station.`);
+  }
+
+  async submitLogin() {
+    const username = this.loginUsername().trim();
+    const password = this.loginPassword().trim();
+    if (!username || !password) {
+      this.loginError.set("Please enter both username and password");
+      return;
+    }
+    this.loginLoading.set(true);
+    this.loginError.set(null);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.userRole.set(data.role);
+        this.isLoggedIn.set(true);
+        this.loginLoading.set(false);
+        if (data.role === 'ADMIN') {
+          this.isAdminView.set(true);
+          this.clearMapLayers();
+          if (this.simInterval) clearInterval(this.simInterval);
+          this.startAdminDispatcherSimulation();
+        } else {
+          this.isAdminView.set(false);
+          this.clearMapLayers();
+          if (this.simInterval) clearInterval(this.simInterval);
+          this.startSimulation();
+        }
+      } else {
+        const errMsg = await res.text();
+        this.loginError.set(errMsg || "Invalid username or password");
+        this.loginLoading.set(false);
+      }
+    } catch (e: any) {
+      this.loginError.set("Network error. Please try again.");
+      this.loginLoading.set(false);
+    }
+  }
+
+  async logout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {}
+    this.isLoggedIn.set(false);
+    this.userRole.set(null);
+    this.isAdminView.set(false);
+    this.loginUsername.set("");
+    this.loginPassword.set("");
+    this.loginError.set(null);
+    this.clearMapLayers();
+    if (this.simInterval) clearInterval(this.simInterval);
   }
 
   toggleAdminView() {

@@ -27,7 +27,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest,
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest,
                                         HttpServletRequest request,
                                         HttpServletResponse response) {
         try {
@@ -46,7 +46,18 @@ public class AuthController {
             
             securityContextRepository.saveContext(context, request, response);
 
-            return ResponseEntity.ok("Login successful");
+            String username = authentication.getName();
+            String roleName = authentication.getAuthorities().stream()
+                    .map(grantedAuthority -> grantedAuthority.getAuthority())
+                    .findFirst()
+                    .orElse("ROLE_PASSENGER");
+            
+            if (roleName.startsWith("ROLE_")) {
+                roleName = roleName.substring(5);
+            }
+            livebus.security.model.Role role = livebus.security.model.Role.valueOf(roleName);
+
+            return ResponseEntity.ok(new livebus.security.dto.LoginResponse(username, role));
             
         } catch (Exception e) {
             

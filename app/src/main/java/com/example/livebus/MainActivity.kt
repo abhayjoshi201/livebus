@@ -29,6 +29,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject lateinit var transitRepository: TransitRepository
+    @Inject lateinit var authRepository: com.example.livebus.data.AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,14 +43,32 @@ class MainActivity : ComponentActivity() {
 
             LiveBusTheme(themeOption = settingsState.themeOption) {
                 var appMode by remember { mutableStateOf("passenger") }
-                var currentScreen by remember { mutableStateOf("home") }
+                var currentScreen by remember { mutableStateOf("login") }
 
                 if (appMode == "driver") {
                     LiveBusAppNavigation(
-                        onSwitchToPassenger = { appMode = "passenger" }
+                        onSwitchToPassenger = { 
+                            appMode = "passenger"
+                            currentScreen = "home"
+                        },
+                        onLogout = {
+                            appMode = "passenger"
+                            currentScreen = "login"
+                        }
                     )
                 } else {
                     when (currentScreen) {
+                        "login" -> com.example.livebus.ui.auth.LoginScreen(
+                            authRepository = authRepository,
+                            onLoginSuccess = { username, role ->
+                                if (role == "DRIVER") {
+                                    appMode = "driver"
+                                } else {
+                                    appMode = "passenger"
+                                    currentScreen = "home"
+                                }
+                            }
+                        )
                         "settings" -> SettingsScreen(
                             onBackClick = { currentScreen = "home" },
                             onViewMapClick = { currentScreen = "tracking" },
@@ -58,6 +77,9 @@ class MainActivity : ComponentActivity() {
                             onSwitchToDriver = { appMode = "driver" },
                             onThemeChanged = { theme ->
                                 settingsViewModel.updateTheme(theme)
+                            },
+                            onLogoutClick = {
+                                currentScreen = "login"
                             }
                         )
                         "alerts" -> AlertsScreen(

@@ -22,6 +22,7 @@ fun SettingsScreen(
     onAlertsClick: () -> Unit = {},
     onSwitchToDriver: () -> Unit = {},
     onThemeChanged: (ThemeOption) -> Unit = {},
+    onLogoutClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -122,6 +123,26 @@ fun SettingsScreen(
                         onThemeChanged(ThemeOption.SYSTEM)
                     }
                 )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().clickable { onLogoutClick() },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Log Out",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
             }
         }
     }

@@ -12,7 +12,8 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun LiveBusAppNavigation(
-    onSwitchToPassenger: () -> Unit = {}
+    onSwitchToPassenger: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val navController = rememberNavController()
     val shiftViewModel: ShiftViewModel = viewModel()
@@ -91,7 +92,7 @@ fun LiveBusAppNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "login",
+            startDestination = "route_selection",
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("login") {
@@ -160,11 +161,7 @@ fun LiveBusAppNavigation(
                         }
                     },
                     onSwitchToPassenger = onSwitchToPassenger,
-                    onLogout = {
-                        navController.navigate("login") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }
+                    onLogout = onLogout
                 )
             }
         }

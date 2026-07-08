@@ -1,3 +1,43 @@
+@if (!isLoggedIn()) {
+  <div class="login-overlay">
+    <div class="login-card">
+      <div class="logo-area" style="justify-content: center; margin-bottom: 8px;">
+        <div class="logo-icon" style="font-size: 32px;">🎓</div>
+        <h1 class="logo-title" style="font-size: 28px;">GEHU LiveBus</h1>
+      </div>
+      <p style="text-align: center; color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">College Transit Tracking Portal</p>
+
+      <!-- Role Selector Toggle -->
+      <div class="role-selector">
+        <button [class.active]="!loginIsAdmin()" (click)="loginIsAdmin.set(false)" class="role-btn">Commuter</button>
+        <button [class.active]="loginIsAdmin()" (click)="loginIsAdmin.set(true)" class="role-btn">Admin Portal</button>
+      </div>
+
+      <!-- Form Inputs -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group">
+          <label>{{ loginIsAdmin() ? 'Admin Username' : 'Student / Staff ID' }}</label>
+          <input type="text" class="admin-input" [ngModel]="loginUsername()" (ngModelChange)="loginUsername.set($event)" placeholder="Enter username / ID">
+        </div>
+        <div class="form-group">
+          <label>{{ loginIsAdmin() ? 'Password' : 'Password (same as ID)' }}</label>
+          <input type="password" class="admin-input" [ngModel]="loginPassword()" (ngModelChange)="loginPassword.set($event)" placeholder="••••••••">
+        </div>
+
+        @if (loginError()) {
+          <div style="color: #ef4444; font-size: 12px; font-weight: 600; text-align: center;">
+            {{ loginError() }}
+          </div>
+        }
+
+        <button (click)="submitLogin()" class="action-btn" style="margin-top: 8px; height: 42px; font-weight: 700;">
+          {{ loginLoading() ? 'Authenticating...' : 'LOGIN' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- Header / Navbar -->
 <header>
   <div class="logo-area" (click)="showHomeView()">
@@ -5,9 +45,18 @@
     <h1 class="logo-title">GEHU LiveBus Portal</h1>
   </div>
   <div style="display: flex; align-items: center; gap: 16px;">
-    <button (click)="toggleAdminView()" class="admin-btn">
-      {{ isAdminView() ? '👥 View Map & Routes' : '🔑 Admin Portal' }}
-    </button>
+    @if (isLoggedIn() && userRole() === 'ADMIN') {
+      <button (click)="toggleAdminView()" class="admin-btn">
+        {{ isAdminView() ? '👥 View Map & Routes' : '🔑 Admin Portal' }}
+      </button>
+    }
+    
+    @if (isLoggedIn()) {
+      <button (click)="logout()" class="logout-btn" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.25)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'">
+        🚪 Logout
+      </button>
+    }
+
     <div class="city-switcher">
       <div class="hub-badge">⛰️ 3 Campuses Active</div>
       <select [value]="currentCity()" (change)="onCityChange($event)" class="city-select">
