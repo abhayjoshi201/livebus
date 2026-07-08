@@ -27,7 +27,7 @@ val DarkGray = Color(0xFF444444)
 val BrandNavy = Color(0xFF0B2545)
 val BrandGold = Color(0xFFF4B400)
 val BrandOrange = Color(0xFFE37A24)
-val BrandDarkBg = Color(0xFF070F1E)
+val BrandDarkBg = Color(0xFF0B2545)
 val BrandDarkSurface = Color(0xFF0D233E)
 val BrandLightBg = Color(0xFFF8FAFC)
 

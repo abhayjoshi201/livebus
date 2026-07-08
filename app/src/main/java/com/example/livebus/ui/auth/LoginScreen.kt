@@ -1,6 +1,7 @@
 package com.example.livebus.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -32,7 +33,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)), // Deep Slate background
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Card(
@@ -40,7 +41,8 @@ fun LoginScreen(
                 .fillMaxWidth(0.85f)
                 .wrapContentHeight(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -50,13 +52,13 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "LiveBus",
-                    color = Color(0xFFFACC15), // Gold
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "College Transit Tracking",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
                 )
@@ -67,8 +69,8 @@ fun LoginScreen(
                         .padding(bottom = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    val activeColor = Color(0xFF3B82F6)
-                    val inactiveColor = Color(0xFF475569)
+                    val activeColor = MaterialTheme.colorScheme.primary
+                    val inactiveColor = MaterialTheme.colorScheme.surfaceVariant
 
                     Button(
                         onClick = { 
@@ -76,11 +78,12 @@ fun LoginScreen(
                             errorMessage = null
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (!isDriverMode) activeColor else inactiveColor
+                            containerColor = if (!isDriverMode) activeColor else inactiveColor,
+                            contentColor = if (!isDriverMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Commuter", color = Color.White)
+                        Text("Commuter", fontWeight = FontWeight.Bold)
                     }
 
                     Button(
@@ -89,11 +92,12 @@ fun LoginScreen(
                             errorMessage = null
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isDriverMode) activeColor else inactiveColor
+                            containerColor = if (isDriverMode) activeColor else inactiveColor,
+                            contentColor = if (isDriverMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Driver Shift", color = Color.White)
+                        Text("Driver Shift", fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -106,12 +110,12 @@ fun LoginScreen(
                     label = { Text(if (isDriverMode) "Username" else "Student / Staff ID") },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF3B82F6),
-                        unfocusedBorderColor = Color(0xFF475569),
-                        focusedLabelColor = Color(0xFF3B82F6),
-                        unfocusedLabelColor = Color(0xFF94A3B8)
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = if (isDriverMode) KeyboardType.Text else KeyboardType.Number,
@@ -132,12 +136,12 @@ fun LoginScreen(
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF3B82F6),
-                        unfocusedBorderColor = Color(0xFF475569),
-                        focusedLabelColor = Color(0xFF3B82F6),
-                        unfocusedLabelColor = Color(0xFF94A3B8)
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
@@ -151,14 +155,14 @@ fun LoginScreen(
                 errorMessage?.let {
                     Text(
                         text = it,
-                        color = Color(0xFFEF4444),
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
 
                 if (isLoading) {
-                    CircularProgressIndicator(color = Color(0xFFFACC15))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 } else {
                     Button(
                         onClick = {
@@ -181,7 +185,10 @@ fun LoginScreen(
                                 )
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFACC15)),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -189,7 +196,6 @@ fun LoginScreen(
                     ) {
                         Text(
                             text = "LOGIN",
-                            color = Color(0xFF0F172A),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
                         )

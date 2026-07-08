@@ -50,6 +50,13 @@ spec:
                   name: livebus-db-secrets
                   key: rabbitmq-password
 
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
           volumeMounts:
             - name: secrets-store-inline
               mountPath: "/mnt/secrets"
