@@ -62,7 +62,7 @@ deploy-gke:
     - gcloud container clusters get-credentials $GKE_CLUSTER_NAME --zone=$GCP_ZONE
   script:
     # Update the container image in the livebus-app.yaml deployment manifest to use the new build tag
-    - sed -i "s|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}|g" kubernetes/livebus-app.yaml
+    - 'sed -i "s|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:latest|image: us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPO_NAME}/${AR_IMAGE_NAME}:${CI_COMMIT_SHA}|g" kubernetes/livebus-app.yaml'
     
     # Generate secrets file from template
     - envsubst < kubernetes/livebus-secrets.yaml.template > kubernetes/livebus-secrets.yaml
