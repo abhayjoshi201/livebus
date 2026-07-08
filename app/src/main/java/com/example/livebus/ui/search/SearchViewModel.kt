@@ -25,28 +25,46 @@ sealed interface SearchResult {
         val id: String,
         val stopName: String,
         val distanceKm: Double,
-        val arrivingRoutes: List<String> = listOf("216W (5 min)", "219 (12 min)")
+        val arrivingRoutes: List<String>
     ) : SearchResult
 }
 
 @HiltViewModel
-class SearchViewModel @Inject constructor() : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val transitRepository: com.example.livebus.data.TransitRepository
+) : ViewModel() {
 
-    private val allRoutes = listOf(
-        SearchResult.RouteResult("r1", "Route 216W", "Towards IIIT Gachibowli", "ON TIME"),
-        SearchResult.RouteResult("r2", "Route 219", "Towards Patancheru", "DELAYED"),
-        SearchResult.RouteResult("r3", "Route 10H", "Towards Secunderabad Station", "ON TIME"),
-        SearchResult.RouteResult("r4", "Route 47L", "Towards RGIA Shamshabad Airport", "ON TIME"),
-        SearchResult.RouteResult("r5", "Route 222A", "Towards Lingampally", "SEVERE DELAY")
-    )
+    private fun getAllRoutesList(): List<SearchResult.RouteResult> {
+        return transitRepository.allRoutes.values.map { route ->
+            SearchResult.RouteResult(
+                id = route.routeId,
+                routeNumber = route.displayName, // e.g. "Route D-1"
+                destination = route.destination,
+                status = "ON TIME"
+            )
+        }
+    }
 
-    private val allStops = listOf(
-        SearchResult.StopResult("s1", "Mehdipatnam Bus Depot", 0.8, listOf("216W (5 min)", "219 (12 min)")),
-        SearchResult.StopResult("s2", "Tolichowki X Roads", 0.2, listOf("47L (2 min)", "216W (8 min)")),
-        SearchResult.StopResult("s3", "Secunderabad Station", 4.5, listOf("10H (3 min)")),
-        SearchResult.StopResult("s4", "Raidurg Bio-Diversity", 1.8, listOf("222A (10 min)", "216W (15 min)")),
-        SearchResult.StopResult("s5", "IIIT Gachibowli Campus", 3.1, listOf("222A (4 min)", "219 (9 min)"))
-    )
+    private fun getAllStopsList(): List<SearchResult.StopResult> {
+        return transitRepository.allRoutes.values.flatMap { route ->
+            route.stops.map { stop ->
+                SearchResult.StopResult(
+                    id = stop.id,
+                    stopName = stop.name,
+                    distanceKm = stop.estimatedMinutesFromStart * 0.1,
+                    arrivingRoutes = listOf("${route.displayName} (${stop.estimatedMinutesFromStart} min)")
+                )
+            }
+        }.groupBy { it.stopName }
+         .map { (name, group) ->
+             SearchResult.StopResult(
+                 id = group.first().id,
+                 stopName = name,
+                 distanceKm = group.first().distanceKm,
+                 arrivingRoutes = group.flatMap { it.arrivingRoutes }.distinct()
+             )
+         }
+    }
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -54,11 +72,38 @@ class SearchViewModel @Inject constructor() : ViewModel() {
     private val _selectedFilter = MutableStateFlow(SearchFilter.ALL)
     val selectedFilter: StateFlow<SearchFilter> = _selectedFilter.asStateFlow()
 
-    private val _recentSearches = MutableStateFlow(listOf("Mehdipatnam Bus Depot", "Route 216W", "Tolichowki X Roads"))
+    private val _recentSearches = MutableStateFlow(listOf<String>())
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
-    val suggestedRoutes: List<SearchResult.RouteResult> = allRoutes.take(2)
-    val nearbyStops: List<SearchResult.StopResult> = allStops.take(2)
+    val suggestedRoutes: List<SearchResult.RouteResult>
+        get() = transitRepository.getRoutesForCurrentCity().map { route ->
+            SearchResult.RouteResult(
+                id = route.routeId,
+                routeNumber = route.displayName,
+                destination = route.destination,
+                status = "ON TIME"
+            )
+        }
+
+    val nearbyStops: List<SearchResult.StopResult>
+        get() = transitRepository.getRoutesForCurrentCity().flatMap { route ->
+            route.stops.map { stop ->
+                SearchResult.StopResult(
+                    id = stop.id,
+                    stopName = stop.name,
+                    distanceKm = 0.5,
+                    arrivingRoutes = listOf("${route.displayName} (${stop.estimatedMinutesFromStart} min)")
+                )
+            }
+        }.groupBy { it.stopName }
+         .map { (name, group) ->
+             SearchResult.StopResult(
+                 id = group.first().id,
+                 stopName = name,
+                 distanceKm = group.first().distanceKm,
+                 arrivingRoutes = group.flatMap { it.arrivingRoutes }.distinct()
+             )
+         }.take(3)
 
     @OptIn(FlowPreview::class)
     val searchResults: StateFlow<List<SearchResult>> = combine(
@@ -79,13 +124,13 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         }
         val lower = trimmed.lowercase()
         val routes = if (filter == SearchFilter.ALL || filter == SearchFilter.ROUTES) {
-            allRoutes.filter { 
+            getAllRoutesList().filter { 
                 it.routeNumber.lowercase().contains(lower) || it.destination.lowercase().contains(lower) 
             }
         } else emptyList()
 
         val stops = if (filter == SearchFilter.ALL || filter == SearchFilter.STOPS) {
-            allStops.filter { 
+            getAllStopsList().filter { 
                 it.stopName.lowercase().contains(lower) 
             }
         } else emptyList()
