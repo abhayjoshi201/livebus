@@ -2,13 +2,6 @@ stages:
   - build
   - deploy
 
-variables:
-  GCP_PROJECT_ID: "delta-heading-455916-c2"
-  GCP_REGION: "us-central1"
-  GCP_ZONE: "us-central1-a"
-  AR_REPO_NAME: "livebus-repo"
-  AR_IMAGE_NAME: "livebus-app"
-  GKE_CLUSTER_NAME: "livebus-cluster"
 
 build-image:
   stage: build
