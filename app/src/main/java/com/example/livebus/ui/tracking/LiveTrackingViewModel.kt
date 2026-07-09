@@ -50,6 +50,8 @@ class LiveTrackingViewModel @Inject constructor(
     private val _activeBuses = MutableStateFlow<List<ActiveBus>>(emptyList())
     val activeBuses: StateFlow<List<ActiveBus>> = _activeBuses.asStateFlow()
 
+    private val realBuses = java.util.concurrent.ConcurrentHashMap<String, ActiveBus>()
+
     private val _busLocation = MutableStateFlow<LatLng?>(transitRepository.getActiveRoute()?.initialBusLocation)
     val busLocation: StateFlow<LatLng?> = _busLocation.asStateFlow()
 
@@ -90,6 +92,7 @@ class LiveTrackingViewModel @Inject constructor(
                 Pair(transitRepository.getActiveRoute(), transitRepository.getSelectedCity())
             }.collect { (route, city) ->
                 if (route != null) {
+                    realBuses.clear()
                     _busLocation.value = route.initialBusLocation
                     _userStopLocation.value = route.userStopLocation
                     _routeWaypoints.value = route.waypoints
@@ -139,37 +142,43 @@ class LiveTrackingViewModel @Inject constructor(
                 if (waypoints.size >= 2) {
                     val maxSeg = waypoints.size - 1
 
-                    // Update Bus 1 (Primary / Closest)
+                    // Update Bus 1 (Primary / Closest) simulated movement
                     prog1 += 0.25; if (prog1 >= 1.0) { prog1 = 0.0; seg1 = (seg1 + 1) % maxSeg }
                     val s1 = waypoints[seg1]; val e1 = waypoints[kotlin.math.min(seg1 + 1, maxSeg)]
                     val loc1 = LatLng(s1.latitude + (e1.latitude - s1.latitude) * prog1, s1.longitude + (e1.longitude - s1.longitude) * prog1)
                     val ratio1 = (1.0 - (seg1 + prog1) / maxSeg).coerceIn(0.04, 1.0)
                     val rem1 = kotlin.math.max(1, kotlin.math.round(ratio1 * totalMinutes).toInt())
                     val dist1 = kotlin.math.round((ratio1 * totalDistance) * 10) / 10.0
+                    val simB1 = ActiveBus(baseBusId, loc1, rem1, dist1, BusStatus.ON_TIME)
 
-                    // Update Bus 2 (Following)
+                    // Update Bus 2 (Following) simulated movement
                     prog2 += 0.20; if (prog2 >= 1.0) { prog2 = 0.0; seg2 = (seg2 + 1) % maxSeg }
                     val s2 = waypoints[seg2]; val e2 = waypoints[kotlin.math.min(seg2 + 1, maxSeg)]
                     val loc2 = LatLng(s2.latitude + (e2.latitude - s2.latitude) * prog2, s2.longitude + (e2.longitude - s2.longitude) * prog2)
                     val rem2 = rem1 + 9
                     val dist2 = kotlin.math.round((dist1 + 3.2) * 10) / 10.0
+                    val simB2 = ActiveBus(bus2Id, loc2, rem2, dist2, BusStatus.DELAYED)
 
-                    // Update Bus 3 (Queue)
+                    // Update Bus 3 (Queue) simulated movement
                     prog3 += 0.18; if (prog3 >= 1.0) { prog3 = 0.0; seg3 = (seg3 + 1) % maxSeg }
                     val s3 = waypoints[seg3]; val e3 = waypoints[kotlin.math.min(seg3 + 1, maxSeg)]
                     val loc3 = LatLng(s3.latitude + (e3.latitude - s3.latitude) * prog3, s3.longitude + (e3.longitude - s3.longitude) * prog3)
                     val rem3 = rem2 + 11
                     val dist3 = kotlin.math.round((dist2 + 4.1) * 10) / 10.0
+                    val simB3 = ActiveBus(bus3Id, loc3, rem3, dist3, BusStatus.ON_TIME)
 
-                    val b1 = ActiveBus(baseBusId, loc1, rem1, dist1, BusStatus.ON_TIME)
-                    val b2 = ActiveBus(bus2Id, loc2, rem2, dist2, BusStatus.DELAYED)
-                    val b3 = ActiveBus(bus3Id, loc3, rem3, dist3, BusStatus.ON_TIME)
+                    val b1 = realBuses[baseBusId] ?: simB1
+                    val b2 = realBuses[bus2Id] ?: simB2
+                    val b3 = realBuses[bus3Id] ?: simB3
 
-                    val list = listOf(b1, b2, b3).sortedBy { it.etaMinutes }
-                    _activeBuses.value = list
-                    _busLocation.value = list.firstOrNull()?.location
-                    _eta.value = list.firstOrNull()?.etaMinutes ?: rem1
-                    _distance.value = list.firstOrNull()?.distanceKm ?: dist1
+                    val simulatedList = listOf(b1, b2, b3)
+                    val otherRealBuses = realBuses.values.filter { it.busId != baseBusId && it.busId != bus2Id && it.busId != bus3Id }
+                    val combinedList = (simulatedList + otherRealBuses).sortedBy { it.etaMinutes }
+
+                    _activeBuses.value = combinedList
+                    _busLocation.value = combinedList.firstOrNull()?.location
+                    _eta.value = combinedList.firstOrNull()?.etaMinutes ?: rem1
+                    _distance.value = combinedList.firstOrNull()?.distanceKm ?: dist1
                 }
             }
         }
@@ -266,23 +275,36 @@ class LiveTrackingViewModel @Inject constructor(
             val dist = if (json.has("distance")) json.getDouble("distance") else _distance.value
             val status = if (json.has("status")) BusStatus.valueOf(json.getString("status")) else BusStatus.ON_TIME
 
-            val currentList = _activeBuses.value.toMutableList()
-            val index = currentList.indexOfFirst { it.busId == busId }
             val newBus = ActiveBus(busId, LatLng(lat, lon), eta, dist, status)
-            if (index >= 0) {
-                currentList[index] = newBus
-            } else {
-                currentList.add(newBus)
-            }
-            val sortedList = currentList.sortedBy { it.etaMinutes }
-            _activeBuses.value = sortedList
-            _busLocation.value = sortedList.firstOrNull()?.location ?: LatLng(lat, lon)
-            _eta.value = sortedList.firstOrNull()?.etaMinutes ?: eta
-            _distance.value = sortedList.firstOrNull()?.distanceKm ?: dist
-            _busStatus.value = sortedList.firstOrNull()?.status ?: status
+            realBuses[busId] = newBus
+            refreshBusesList()
         } catch (e: Exception) {
             println("Error parsing STOMP payload: ${e.message}")
         }
+    }
+
+    private fun refreshBusesList() {
+        val activeRoute = transitRepository.getActiveRoute() ?: return
+        val baseBusId = activeRoute.busId
+        val bus2Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(48) ?: "4100") else "${baseBusId}-B2"
+        val bus3Id = if (baseBusId.contains("-")) baseBusId.substringBeforeLast("-") + "-" + (baseBusId.substringAfterLast("-").toIntOrNull()?.plus(170) ?: "4222") else "${baseBusId}-B3"
+
+        val currentList = _activeBuses.value
+        val simulatedBuses = currentList.filter { it.busId == baseBusId || it.busId == bus2Id || it.busId == bus3Id }
+
+        val b1 = realBuses[baseBusId] ?: simulatedBuses.find { it.busId == baseBusId } ?: ActiveBus(baseBusId, activeRoute.initialBusLocation, 25, 12.0, BusStatus.ON_TIME)
+        val b2 = realBuses[bus2Id] ?: simulatedBuses.find { it.busId == bus2Id } ?: ActiveBus(bus2Id, activeRoute.initialBusLocation, 34, 15.2, BusStatus.DELAYED)
+        val b3 = realBuses[bus3Id] ?: simulatedBuses.find { it.busId == bus3Id } ?: ActiveBus(bus3Id, activeRoute.initialBusLocation, 45, 19.3, BusStatus.ON_TIME)
+
+        val simulatedList = listOf(b1, b2, b3)
+        val otherRealBuses = realBuses.values.filter { it.busId != baseBusId && it.busId != bus2Id && it.busId != bus3Id }
+        val combinedList = (simulatedList + otherRealBuses).sortedBy { it.etaMinutes }
+
+        _activeBuses.value = combinedList
+        _busLocation.value = combinedList.firstOrNull()?.location
+        _eta.value = combinedList.firstOrNull()?.etaMinutes ?: b1.etaMinutes
+        _distance.value = combinedList.firstOrNull()?.distanceKm ?: b1.distanceKm
+        _busStatus.value = combinedList.firstOrNull()?.status ?: b1.status
     }
 
     fun toggleAlert() {

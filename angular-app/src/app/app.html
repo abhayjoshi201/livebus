@@ -45,6 +45,9 @@
     <h1 class="logo-title">LiveBus Portal</h1>
   </div>
   <div style="display: flex; align-items: center; gap: 16px;">
+    <button (click)="toggleTheme()" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+      {{ isDarkMode() ? '🌙' : '☀️' }}
+    </button>
     @if (isLoggedIn() && userRole() === 'ADMIN') {
       <button (click)="toggleAdminView()" class="admin-btn">
         {{ isAdminView() ? '👥 View Map & Routes' : '🔑 Admin Portal' }}
@@ -75,7 +78,7 @@
     @if (isAdminView()) {
       <div class="panel-view view-active" style="padding: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: #fff; margin: 0;">🔑 Admin Control</h2>
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0;">🔑 Admin Control</h2>
         </div>
         
         <!-- Tabs -->
@@ -106,6 +109,29 @@
                 <option value="bg-amber">🟡 Amber Theme</option>
                 <option value="bg-blue">🔵 Blue Theme</option>
               </select>
+              
+              <!-- Stops Builder for New Route -->
+              <div style="display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px;">🚏 Custom Stops Builder</span>
+                
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" class="admin-input" style="flex: 1; margin: 0; padding: 6px 12px; font-size: 13px;" placeholder="Stop name (e.g. Subhash Nagar)" [ngModel]="stopInputText()" (ngModelChange)="stopInputText.set($event)" (keyup.enter)="addStopToNewRoute()">
+                  <button type="button" class="action-btn" style="width: auto; padding: 0 16px; margin: 0; height: 34px; font-size: 12px; font-weight: 700; background: var(--primary);" (click)="addStopToNewRoute()">Add</button>
+                </div>
+                
+                @if (newRouteStops().length > 0) {
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                    @for (stop of newRouteStops(); track stop; let idx = $index) {
+                      <span style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 6px; color: #eee;">
+                        {{ stop }}
+                        <button type="button" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;" (click)="removeStopFromNewRoute(idx)">✕</button>
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span style="font-size: 11px; color: var(--text-muted); font-style: italic;">Defaults to: Depot Start ➔ Campus Gate ➔ Destination</span>
+                }
+              </div>
 
               <button class="action-btn" style="margin-top: 8px;" (click)="addRoute()">➕ Register Route</button>
             </div>
@@ -115,12 +141,35 @@
               <span class="stat-label">Active Campus Routes</span>
               <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
                 @for (route of activeHub().routes; track route.id) {
-                  <div class="admin-list-item">
-                    <div>
-                      <div style="font-weight: 700; color: #fff;">{{ route.name }} ({{ route.id }})</div>
-                      <div style="font-size: 11px; color: var(--text-muted);">{{ route.dir }} • Bus #{{ route.busId }}</div>
+                  <div class="admin-list-item" style="flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                      <div>
+                        <div style="font-weight: 700; color: var(--text-main); font-size: 14px;">{{ route.name }} ({{ route.id }})</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ route.dir }} • Bus #{{ route.busId }}</div>
+                      </div>
+                      <button class="delete-btn" (click)="deleteRoute(route.id)" style="padding: 6px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">🗑️</button>
                     </div>
-                    <button class="delete-btn" (click)="deleteRoute(route.id)">🗑️</button>
+
+                    <!-- Stops list for existing route -->
+                    <div style="display: flex; flex-direction: column; gap: 6px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                        <span>ROUTE CORRIDOR STOPS:</span>
+                      </div>
+                      
+                      <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                        @for (stop of route.stops; track stop; let stopIdx = $index) {
+                          <span style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 8px; color: #ddd; font-size: 11px; display: inline-flex; align-items: center; gap: 6px;">
+                            🚏 {{ stop }}
+                            <button type="button" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center;" (click)="removeStopFromRoute(route, stopIdx)">✕</button>
+                          </span>
+                        }
+                        
+                        <!-- Inline Quick Add Stop -->
+                        <div style="display: inline-flex; align-items: center; gap: 4px;">
+                          <input #inlineStopInput type="text" placeholder="+ Add stop" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); color: var(--text-main); border-radius: 6px; padding: 3px 8px; font-size: 11px; width: 100px; height: 24px; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" (keyup.enter)="addStopToRoute(route, inlineStopInput.value); inlineStopInput.value = ''">
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 }
               </div>
@@ -143,7 +192,7 @@
                 @for (route of activeHub().routes; track route.id) {
                   <div class="admin-list-item">
                     <div>
-                      <div style="font-weight: 700; color: #fff;">🚍 Vehicle #{{ route.busId }}</div>
+                      <div style="font-weight: 700; color: var(--text-main);">🚍 Vehicle #{{ route.busId }}</div>
                       <div style="font-size: 11px; color: var(--text-muted);">Assigned to route: {{ route.id }}</div>
                     </div>
                     <span style="font-size: 11px; font-weight: 700; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 8px;">ACTIVE</span>
@@ -184,8 +233,8 @@
         <div class="alert-banner" (click)="showAdvisory()">
           <span style="font-size: 20px;">⚠️</span>
           <div>
-            <div style="font-size: 13px; font-weight: 700; color: #fff;">{{ activeHub().alert }}</div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.8);">Tap to view traffic advisories & reroutes</div>
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">{{ activeHub().alert }}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Tap to view traffic advisories & reroutes</div>
           </div>
         </div>
 
@@ -267,7 +316,7 @@
         <div class="telemetry-panel">
           <div class="telemetry-header">
             <div>
-              <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: #fff;">{{ activeRoute().name }}</h2>
+              <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-main);">{{ activeRoute().name }}</h2>
               <p style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">{{ activeRoute().dir }} • To {{ activeRoute().dest }}</p>
             </div>
             <div class="live-pulse">

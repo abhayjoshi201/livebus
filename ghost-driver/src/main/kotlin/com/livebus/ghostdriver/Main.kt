@@ -1,105 +1,110 @@
 package com.livebus.ghostdriver
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.springframework.messaging.converter.MappingJackson2MessageConverter
-import org.springframework.messaging.simp.stomp.StompCommand
-import org.springframework.messaging.simp.stomp.StompHeaders
-import org.springframework.messaging.simp.stomp.StompSession
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter
-import org.springframework.web.socket.client.standard.StandardWebSocketClient
-import org.springframework.web.socket.messaging.WebSocketStompClient
-import java.util.concurrent.TimeUnit
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
 
-/**
- * POJO / Data class representing the location update payload.
- */
 data class LocationUpdate(
     val busId: String,
     val latitude: Double,
     val longitude: Double
 )
 
-/**
- * Hardcoded list of 5 mock LocationUpdate objects simulating the bus route.
- */
 val mockLocations = listOf(
-    LocationUpdate("101-A", 34.0522, -118.2437),
-    LocationUpdate("101-A", 34.0532, -118.2447),
-    LocationUpdate("101-A", 34.0542, -118.2457),
-    LocationUpdate("101-A", 34.0552, -118.2467),
-    LocationUpdate("101-A", 34.0562, -118.2477)
+    LocationUpdate("UA-07-TA-2024", 30.2872, 77.9984),     // ISBT Terminal (Stop 1)
+    LocationUpdate("UA-07-TA-2024", 30.2868, 77.9998),
+    LocationUpdate("UA-07-TA-2024", 30.2862, 78.0012),     // Turner Road Junction (Stop 2)
+    LocationUpdate("UA-07-TA-2024", 30.2825, 78.0035),
+    LocationUpdate("UA-07-TA-2024", 30.2785, 78.0055),     // Subhash Nagar Chowk (Stop 3)
+    LocationUpdate("UA-07-TA-2024", 30.2740, 78.0070),
+    LocationUpdate("UA-07-TA-2024", 30.2700, 78.0084)      // Clement Town Campus (Stop 4)
 )
 
 fun main() = runBlocking {
-    val url = "ws://localhost:8080/gs-guide-websocket"
-    println("Initializing Ghost Driver STOMP WebSocket Client...")
+    val baseUrl = "http://localhost:8080"
+    println("Initializing Ghost Driver REST Telemetry Publisher...")
 
-    // Set up standard WebSocket client and STOMP messaging wrapper
-    val webSocketClient = StandardWebSocketClient()
-    val stompClient = WebSocketStompClient(webSocketClient)
+    val client = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(10))
+        .build()
 
-    // Register Kotlin module with Jackson so STOMP can serialize data classes automatically
-    val objectMapper = ObjectMapper().registerKotlinModule()
-    val messageConverter = MappingJackson2MessageConverter()
-    messageConverter.objectMapper = objectMapper
-    stompClient.messageConverter = messageConverter
+    // 1. Login as Driver
+    println("Logging in as driver...")
+    val loginJson = """{"username": "driver", "password": "driver123"}"""
+    val loginRequest = HttpRequest.newBuilder()
+        .uri(URI.create("$baseUrl/api/auth/login"))
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(loginJson))
+        .build()
 
-    val sessionHandler = object : StompSessionHandlerAdapter() {
-        override fun afterConnected(session: StompSession, connectedHeaders: StompHeaders) {
-            println("Connected successfully to STOMP broker! Session ID: ${session.sessionId}")
-        }
-
-        override fun handleException(
-            session: StompSession,
-            command: StompCommand?,
-            headers: StompHeaders,
-            payload: ByteArray,
-            exception: Throwable
-        ) {
-            System.err.println("STOMP Exception occurred: ${exception.message}")
-        }
-
-        override fun handleTransportError(session: StompSession, exception: Throwable) {
-            System.err.println("Transport error: ${exception.message}")
-        }
-    }
-
-    var stompSession: StompSession? = null
-    try {
-        println("Connecting to $url...")
-        // Connect asynchronously on IO dispatcher with a 10-second timeout
-        stompSession = withContext(Dispatchers.IO) {
-            stompClient.connectAsync(url, sessionHandler).get(10, TimeUnit.SECONDS)
-        }
-    } catch (e: Exception) {
-        System.err.println("Failed to connect to WebSocket server at $url: ${e.message}")
-        println("Please ensure the Spring Boot server is running on localhost:8080.")
+    val loginResponse = client.send(loginRequest, HttpResponse.BodyHandlers.ofString())
+    if (loginResponse.statusCode() != 200) {
+        System.err.println("Login failed with status: ${loginResponse.statusCode()} - ${loginResponse.body()}")
         return@runBlocking
     }
 
-    // Launch coroutine for the infinite data sending loop
-    val senderJob = launch {
-        var index = 0
-        while (true) {
-            val update = mockLocations[index]
-            try {
-                println("Sending GPS Update -> busId: ${update.busId}, lat: ${update.latitude}, lon: ${update.longitude}")
-                stompSession?.send("/app/driver/update", update)
-            } catch (e: Exception) {
-                System.err.println("Error sending update: ${e.message}")
-            }
+    val cookieHeader = loginResponse.headers().allValues("Set-Cookie")
+    val jsessionCookie = cookieHeader.firstOrNull { it.contains("JSESSIONID") }
+        ?.split(";")?.firstOrNull()
 
-            // Move to next coordinate circularly
-            index = (index + 1) % mockLocations.size
-            delay(3000)
-        }
+    if (jsessionCookie == null) {
+        System.err.println("Failed to retrieve session cookie from response!")
+        return@runBlocking
     }
+    println("Login successful. Session Cookie: $jsessionCookie")
 
-    senderJob.join()
+    // 2. Start Trip for Route D-1 (d1111111-1111-1111-1111-111111111111)
+    println("Starting active driver trip for Route D-1...")
+    val startTripJson = """{
+        "routeId": "d1111111-1111-1111-1111-111111111111",
+        "busId": "11111111-1111-1111-1111-111111111111"
+    }""".trimIndent()
+
+    val startTripRequest = HttpRequest.newBuilder()
+        .uri(URI.create("$baseUrl/api/driver/trips/start"))
+        .header("Content-Type", "application/json")
+        .header("Cookie", jsessionCookie)
+        .POST(HttpRequest.BodyPublishers.ofString(startTripJson))
+        .build()
+
+    val startTripResponse = client.send(startTripRequest, HttpResponse.BodyHandlers.ofString())
+    if (startTripResponse.statusCode() != 200 && !startTripResponse.body().contains("already has an active trip")) {
+        System.err.println("Start trip failed with status: ${startTripResponse.statusCode()} - ${startTripResponse.body()}")
+        return@runBlocking
+    }
+    println("Driver shift started successfully (or active trip reused).")
+
+    // 3. Location Simulation Loop
+    var index = 0
+    while (true) {
+        val update = mockLocations[index]
+        val locationJson = """{
+            "latitude": ${update.latitude},
+            "longitude": ${update.longitude}
+        }""".trimIndent()
+
+        try {
+            println("Streaming GPS update -> lat: ${update.latitude}, lon: ${update.longitude}")
+            val locationRequest = HttpRequest.newBuilder()
+                .uri(URI.create("$baseUrl/api/driver/trips/location"))
+                .header("Content-Type", "application/json")
+                .header("Cookie", jsessionCookie)
+                .PUT(HttpRequest.BodyPublishers.ofString(locationJson))
+                .build()
+
+            val locationResponse = client.send(locationRequest, HttpResponse.BodyHandlers.ofString())
+            if (locationResponse.statusCode() != 200) {
+                System.err.println("Failed to update location. Status: ${locationResponse.statusCode()} - ${locationResponse.body()}")
+            }
+        } catch (e: Exception) {
+            System.err.println("Network error sending GPS update: ${e.message}")
+        }
+
+        index = (index + 1) % mockLocations.size
+        delay(3000)
+    }
 }

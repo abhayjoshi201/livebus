@@ -18,6 +18,9 @@ data class LoginResult(
 @Singleton
 class AuthRepository @Inject constructor() {
 
+    var sessionCookie: String? = null
+        private set
+
     private fun getHttpBaseUrl(): String {
         val wsUrl = BuildConfig.WEBSOCKET_URL
         val base = wsUrl.replace("ws://", "http://").replace("wss://", "https://")
@@ -51,6 +54,15 @@ class AuthRepository @Inject constructor() {
 
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
+                val cookies = connection.headerFields.entries
+                    .firstOrNull { it.key?.equals("Set-Cookie", ignoreCase = true) == true }
+                    ?.value
+                cookies?.forEach { cookie ->
+                    if (cookie.startsWith("JSESSIONID=")) {
+                        sessionCookie = cookie.substringBefore(";")
+                    }
+                }
+                android.util.Log.d("AuthRepository", "Stored session cookie: $sessionCookie")
                 val responseText = connection.inputStream.bufferedReader().use { it.readText() }
                 val jsonResponse = JSONObject(responseText)
                 val returnedUsername = jsonResponse.getString("username")

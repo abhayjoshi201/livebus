@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    id("org.jetbrains.kotlin.jvm") version "2.0.0"
     application
 }
 
@@ -7,6 +7,10 @@ plugins {
 group = "com.livebus.ghostdriver"
 version = "1.0-SNAPSHOT"
 
+
+repositories {
+    mavenCentral()
+}
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")

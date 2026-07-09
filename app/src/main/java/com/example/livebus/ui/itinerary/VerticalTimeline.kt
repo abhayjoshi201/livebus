@@ -2,6 +2,7 @@ package com.example.livebus.ui.itinerary
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.livebus.R
 import com.example.livebus.ui.theme.statusColor
 import com.example.livebus.ui.tracking.BusStatus
@@ -33,6 +35,8 @@ fun VerticalTimeline(
     currentBusStopIndex: Int,
     nextStopEta: Int,
     status: BusStatus,
+    preferredStopId: String?,
+    onStopClick: (Stop) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState()
 ) {
@@ -63,6 +67,7 @@ fun VerticalTimeline(
             val isUpcoming = index > currentBusStopIndex
             val isFirst = index == 0
             val isLast = index == stops.size - 1
+            val isPreferred = stop.id == preferredStopId || (preferredStopId == null && isLast)
 
             // If this is the target stop, render the Live Bus Indicator RIGHT BEFORE it
             if (isTarget) {
@@ -79,10 +84,12 @@ fun VerticalTimeline(
                 isUpcoming = isUpcoming,
                 isFirst = isFirst,
                 isLast = isLast,
+                isPreferred = isPreferred,
                 etaMinutes = if (isTarget) nextStopEta else null,
                 lineColor = lineColor,
                 passedColor = passedColor,
-                activeColor = activeColor
+                activeColor = activeColor,
+                onStopClick = { onStopClick(stop) }
             )
         }
     }
@@ -196,10 +203,12 @@ fun StopTimelineItem(
     isUpcoming: Boolean,
     isFirst: Boolean,
     isLast: Boolean,
+    isPreferred: Boolean,
     etaMinutes: Int?,
     lineColor: Color,
     passedColor: Color,
-    activeColor: Color
+    activeColor: Color,
+    onStopClick: () -> Unit
 ) {
     val nodeColor = when {
         isPassed -> passedColor
@@ -225,6 +234,7 @@ fun StopTimelineItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
+            .clickable(enabled = !isPassed) { onStopClick() }
             .drawBehind {
                 val centerX = 28.dp.toPx()
                 val centerY = size.height / 2f
@@ -271,6 +281,18 @@ fun StopTimelineItem(
                         radius = 4.dp.toPx(),
                         center = Offset(centerX, centerY)
                     )
+                } else if (isPreferred) {
+                    // Distinctive star-like or colored ring for preferred stop
+                    drawCircle(
+                        color = activeColor,
+                        radius = 8.dp.toPx(),
+                        center = Offset(centerX, centerY)
+                    )
+                    drawCircle(
+                        color = Color.White,
+                        radius = 3.dp.toPx(),
+                        center = Offset(centerX, centerY)
+                    )
                 } else {
                     // Standard hollow circle for upcoming stops
                     drawCircle(
@@ -294,12 +316,29 @@ fun StopTimelineItem(
 
         // Stop Name and details
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stop.name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = fontWeight,
-                color = textColor
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stop.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (isPreferred) FontWeight.Bold else fontWeight,
+                    color = if (isPreferred) activeColor else textColor
+                )
+                if (isPreferred && !isPassed) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = activeColor.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = "PREFERRED",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = activeColor,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
             if (isTarget) {
                 Text(
                     text = "Next Stop • ${stop.distanceKm} km from start",

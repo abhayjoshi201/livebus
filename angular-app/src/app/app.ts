@@ -1,4 +1,4 @@
-import { Component, signal, computed, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, signal, computed, effect, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -44,6 +44,44 @@ export interface QueueItem {
 })
 export class App implements AfterViewInit, OnDestroy {
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
+
+  readonly isDarkMode = signal<boolean>(this.detectDarkMode());
+
+  constructor() {
+    effect(() => {
+      this.updateThemeClass(this.isDarkMode());
+    });
+  }
+
+  private detectDarkMode(): boolean {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = localStorage.getItem('theme');
+      if (saved) {
+        return saved === 'dark';
+      }
+      return !window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+    return true;
+  }
+
+  toggleTheme() {
+    const nextMode = !this.isDarkMode();
+    this.isDarkMode.set(nextMode);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('theme', nextMode ? 'dark' : 'light');
+    }
+  }
+
+  private updateThemeClass(isDark: boolean) {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      if (isDark) {
+        root.classList.remove('light-theme');
+      } else {
+        root.classList.add('light-theme');
+      }
+    }
+  }
 
   // --- TRANSIT DATABASE FOR CAMPUS BUSES ---
   readonly hubs: Record<string, TransitHub> = {
@@ -101,6 +139,8 @@ export class App implements AfterViewInit, OnDestroy {
   readonly newRouteMin = signal<number>(15);
   readonly newRouteDist = signal<number>(5);
   readonly newBusId = signal<string>("");
+  readonly newRouteStops = signal<string[]>([]);
+  readonly stopInputText = signal<string>("");
 
   // --- AUTHENTICATION STATE SIGNALS ---
   readonly isLoggedIn = signal<boolean>(false);
@@ -339,7 +379,9 @@ export class App implements AfterViewInit, OnDestroy {
       [center[0], center[1]]
     ];
 
-    const stops = ["Depot Start", "Campus Gate", dest];
+    const stops = this.newRouteStops().length > 0 
+      ? [...this.newRouteStops()] 
+      : ["Depot Start", "Campus Gate", dest];
 
     const newRoute: TransitRoute = {
       id,
@@ -355,7 +397,7 @@ export class App implements AfterViewInit, OnDestroy {
       stops
     };
 
-    hub.routes.push(newRoute);
+    hub.routes = [...hub.routes, newRoute];
     alert(`Successfully registered Route ${id}!`);
     if (this.isAdminView()) {
       this.startAdminDispatcherSimulation();
@@ -366,6 +408,36 @@ export class App implements AfterViewInit, OnDestroy {
     this.newRouteDest.set("");
     this.newRouteDir.set("");
     this.newRouteBusId.set("");
+    this.newRouteStops.set([]);
+    this.stopInputText.set("");
+  }
+
+  addStopToNewRoute() {
+    const stop = this.stopInputText().trim();
+    if (!stop) return;
+    this.newRouteStops.update(stops => [...stops, stop]);
+    this.stopInputText.set("");
+  }
+
+  removeStopFromNewRoute(idx: number) {
+    this.newRouteStops.update(stops => stops.filter((_, i) => i !== idx));
+  }
+
+  addStopToRoute(route: TransitRoute, stopName: string) {
+    const cleanName = stopName.trim();
+    if (!cleanName) return;
+    route.stops = [...route.stops, cleanName];
+    alert(`Added stop "${cleanName}" to route ${route.id}`);
+  }
+
+  removeStopFromRoute(route: TransitRoute, idx: number) {
+    if (route.stops.length <= 1) {
+      alert("A route must have at least one stop!");
+      return;
+    }
+    const removed = route.stops[idx];
+    route.stops = route.stops.filter((_, i) => i !== idx);
+    alert(`Removed stop "${removed}" from route ${route.id}`);
   }
 
   deleteRoute(routeId: string) {

@@ -20,12 +20,14 @@ data class TransitCity(
 data class TransitRoute(
     val routeId: String,            // e.g. "216W"
     val cityId: String,             // e.g. "HYD"
+    val dbRouteId: String,          // UUID for backend DB mapping
+    val dbBusId: String,            // UUID for backend DB mapping
     val routeName: String,          // e.g. "ROUTE 216W"
     val displayName: String,        // e.g. "Route 216W"
     val destination: String,        // e.g. "IIIT Gachibowli Campus"
     val direction: String,          // e.g. "Westbound towards IT Corridor"
     val busId: String,              // e.g. "TG-09-Z-4052"
-    val stompTopic: String,         // e.g. "/topic/route/216W"
+    val stompTopic: String,         // e.g. "/topic/routes/UUID"
     val initialBusLocation: LatLng, // e.g. Mehdipatnam
     val userStopLocation: LatLng,   // e.g. IIIT Campus
     val waypoints: List<LatLng>,    // Road intersection waypoints along corridor
@@ -81,12 +83,14 @@ class TransitRepository @Inject constructor() {
         "D-1" to TransitRoute(
             routeId = "D-1",
             cityId = "DDN",
+            dbRouteId = "d1111111-1111-1111-1111-111111111111",
+            dbBusId = "11111111-1111-1111-1111-111111111111",
             routeName = "ROUTE D-1",
             displayName = "Route D-1",
             destination = "Clement Town Campus",
             direction = "Clement Town Bus Service",
             busId = "UA-07-TA-2024",
-            stompTopic = "/topic/route/D-1",
+            stompTopic = "/topic/routes/d1111111-1111-1111-1111-111111111111",
             initialBusLocation = LatLng(30.2872, 77.9984), // ISBT
             userStopLocation = LatLng(30.2700, 78.0075),   // Campus
             waypoints = DehradunRoutes.d1Waypoints,
@@ -100,12 +104,14 @@ class TransitRepository @Inject constructor() {
         "D-2" to TransitRoute(
             routeId = "D-2",
             cityId = "DDN",
+            dbRouteId = "d2222222-2222-2222-2222-222222222222",
+            dbBusId = "22222222-2222-2222-2222-222222222222",
             routeName = "ROUTE D-2",
             displayName = "Route D-2",
             destination = "Clement Town Campus",
             direction = "Dehradun City Service",
             busId = "UA-07-TA-4050",
-            stompTopic = "/topic/route/D-2",
+            stompTopic = "/topic/routes/d2222222-2222-2222-2222-222222222222",
             initialBusLocation = LatLng(30.3244, 78.0411), // Clock Tower
             userStopLocation = LatLng(30.2700, 78.0075),   // Campus
             waypoints = DehradunRoutes.d2Waypoints,
@@ -121,12 +127,14 @@ class TransitRepository @Inject constructor() {
         "B-1" to TransitRoute(
             routeId = "B-1",
             cityId = "BHT",
+            dbRouteId = "b1111111-1111-1111-1111-111111111111",
+            dbBusId = "33333333-3333-3333-3333-333333333333",
             routeName = "ROUTE B-1",
             displayName = "Route B-1",
             destination = "Bhimtal Campus",
             direction = "Haldwani-Bhimtal Hill Service",
             busId = "UA-04-TC-8821",
-            stompTopic = "/topic/route/B-1",
+            stompTopic = "/topic/routes/b1111111-1111-1111-1111-111111111111",
             initialBusLocation = LatLng(29.2170, 79.5180), // Haldwani
             userStopLocation = LatLng(29.3510, 79.5480),   // Bhimtal Campus
             waypoints = BhimtalRoutes.b1Waypoints,
@@ -142,12 +150,14 @@ class TransitRepository @Inject constructor() {
         "H-1" to TransitRoute(
             routeId = "H-1",
             cityId = "HLD",
+            dbRouteId = "e1111111-1111-1111-1111-111111111111",
+            dbBusId = "44444444-4444-4444-4444-444444444444",
             routeName = "ROUTE H-1",
             displayName = "Route H-1",
             destination = "Haldwani Campus",
             direction = "Lalkuan-Haldwani Connector",
             busId = "UA-04-TB-5340",
-            stompTopic = "/topic/route/H-1",
+            stompTopic = "/topic/routes/e1111111-1111-1111-1111-111111111111",
             initialBusLocation = LatLng(29.0770, 79.5090), // Lalkuan
             userStopLocation = LatLng(29.2220, 79.5110),   // Haldwani Campus
             waypoints = HaldwaniRoutes.h1Waypoints,

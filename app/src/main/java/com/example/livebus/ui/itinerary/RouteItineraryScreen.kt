@@ -32,6 +32,7 @@ fun RouteItineraryScreen(
     val remainingDistanceKm by viewModel.remainingDistanceKm.collectAsState()
     val currentBusStopIndex by viewModel.currentBusStopIndex.collectAsState()
     val nextStopEta by viewModel.nextStopEtaMinutes.collectAsState()
+    val preferredStopId by viewModel.preferredStopId.collectAsState()
     val status by viewModel.busStatus.collectAsState()
 
     val statusColor = status.statusColor()
@@ -129,6 +130,10 @@ fun RouteItineraryScreen(
                     currentBusStopIndex = currentBusStopIndex,
                     nextStopEta = nextStopEta,
                     status = status,
+                    preferredStopId = preferredStopId,
+                    onStopClick = { stop ->
+                        viewModel.selectPreferredStop(stop.id)
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }

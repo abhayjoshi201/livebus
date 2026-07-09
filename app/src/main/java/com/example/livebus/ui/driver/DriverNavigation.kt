@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -16,7 +16,7 @@ fun LiveBusAppNavigation(
     onLogout: () -> Unit = {}
 ) {
     val navController = rememberNavController()
-    val shiftViewModel: ShiftViewModel = viewModel()
+    val shiftViewModel: ShiftViewModel = hiltViewModel()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "login"
@@ -33,7 +33,7 @@ fun LiveBusAppNavigation(
     val showTopBar = currentRoute != "login"
 
     val isBroadcasting by shiftViewModel.isBroadcasting.collectAsState()
-    val selectedRouteName by shiftViewModel.selectedRoute.collectAsState()
+    val selectedRoute by shiftViewModel.selectedRoute.collectAsState()
     val selectedBusId by shiftViewModel.selectedBus.collectAsState()
     val txCount by shiftViewModel.telemetryCount.collectAsState()
 
@@ -103,10 +103,18 @@ fun LiveBusAppNavigation(
             }
 
             composable("route_selection") {
-                RouteSelectionScreen(onNavigateNext = { route ->
-                    shiftViewModel.setRoute(route)
-                    navController.navigate("bus_selection")
-                })
+                val availableRoutes by shiftViewModel.availableRoutes.collectAsState()
+                val selectedCityId by shiftViewModel.selectedCityId.collectAsState()
+
+                RouteSelectionScreen(
+                    availableRoutes = availableRoutes,
+                    selectedRoute = selectedRoute,
+                    onRouteSelected = { route -> shiftViewModel.setRoute(route) },
+                    selectedCityId = selectedCityId,
+                    allCities = shiftViewModel.allCities,
+                    onCitySelected = { cityId -> shiftViewModel.selectCity(cityId) },
+                    onNavigateNext = { navController.navigate("bus_selection") }
+                )
             }
 
             composable("bus_selection") {
@@ -118,7 +126,7 @@ fun LiveBusAppNavigation(
 
             composable("shift_confirmation") {
                 ShiftConfirmationScreen(
-                    route = selectedRouteName,
+                    route = selectedRoute?.displayName ?: "",
                     busId = selectedBusId,
                     onStartShift = {
                         shiftViewModel.startBroadcasting()
@@ -129,7 +137,7 @@ fun LiveBusAppNavigation(
 
             composable("active_shift") {
                 ActiveShiftScreen(
-                    route = selectedRouteName,
+                    route = selectedRoute?.displayName ?: "",
                     busId = selectedBusId,
                     txCount = txCount,
                     onReportDelay = { shiftViewModel.reportTrafficDelay() },
@@ -145,14 +153,14 @@ fun LiveBusAppNavigation(
             composable("operator_settings") {
                 OperatorSettingsScreen(
                     busId = selectedBusId,
-                    route = selectedRouteName,
+                    route = selectedRoute?.displayName ?: "",
                     onSwitchToPassenger = onSwitchToPassenger
                 )
             }
 
             composable("trip_end") {
                 TripEndScreen(
-                    route = selectedRouteName,
+                    route = selectedRoute?.displayName ?: "",
                     busId = selectedBusId,
                     txCount = txCount,
                     onReturnHome = {

@@ -58,6 +58,11 @@ class RouteViewModel @Inject constructor(
     private val _nextStopEtaMinutes = MutableStateFlow(5)
     val nextStopEtaMinutes: StateFlow<Int> = _nextStopEtaMinutes.asStateFlow()
 
+    private val _nextStopDistanceKm = MutableStateFlow(1.2)
+
+    private val _preferredStopId = MutableStateFlow<String?>(null)
+    val preferredStopId: StateFlow<String?> = _preferredStopId.asStateFlow()
+
     private val _busStatus = MutableStateFlow(BusStatus.ON_TIME)
     val busStatus: StateFlow<BusStatus> = _busStatus.asStateFlow()
 
@@ -73,12 +78,15 @@ class RouteViewModel @Inject constructor(
                 if (route != null) {
                     _stops.value = route.stops
                     _routeName.value = route.routeName
+                    _preferredStopId.value = null
                     _destinationName.value = route.destination
                     _currentBusStopIndex.value = kotlin.math.min(2, route.stops.size - 1)
                     subscribeToRouteTopic(route.stompTopic)
+                    recalculateEtaAndDistance()
                 } else {
                     _stops.value = emptyList()
                     _routeName.value = "No Route Selected"
+                    _preferredStopId.value = null
                     _destinationName.value = "${city.name} (${city.defaultLocationName})"
                     routeDisposable?.dispose()
                 }
@@ -107,11 +115,10 @@ class RouteViewModel @Inject constructor(
             if (json.has("eta")) {
                 val eta = json.getInt("eta")
                 _nextStopEtaMinutes.value = eta
-                _totalEtaMinutes.value = eta + 20
             }
             if (json.has("distance")) {
                 val dist = json.getDouble("distance")
-                _remainingDistanceKm.value = dist + 8.5
+                _nextStopDistanceKm.value = dist
             }
             if (json.has("stopIndex")) {
                 val idx = json.getInt("stopIndex")
@@ -122,14 +129,60 @@ class RouteViewModel @Inject constructor(
             if (json.has("status")) {
                 _busStatus.value = BusStatus.valueOf(json.getString("status"))
             }
+            recalculateEtaAndDistance()
         } catch (e: Exception) {
             println("Error parsing STOMP payload in RouteViewModel: ${e.message}")
+        }
+    }
+
+    fun selectPreferredStop(stopId: String) {
+        _preferredStopId.value = stopId
+        recalculateEtaAndDistance()
+    }
+
+    private fun recalculateEtaAndDistance() {
+        val stopsList = _stops.value
+        if (stopsList.isEmpty()) return
+
+        val currentIndex = _currentBusStopIndex.value
+        val nextEta = _nextStopEtaMinutes.value
+        val nextDist = _nextStopDistanceKm.value
+
+        val preferredId = _preferredStopId.value
+        val preferredIndex = if (preferredId != null) {
+            stopsList.indexOfFirst { it.id == preferredId }
+        } else {
+            stopsList.size - 1 // Default to last stop (destination)
+        }
+
+        if (preferredIndex == -1) return
+        val targetStop = stopsList[preferredIndex]
+        _destinationName.value = targetStop.name
+
+        if (preferredIndex < currentIndex) {
+            // Bus has already passed the stop
+            _totalEtaMinutes.value = 0
+            _remainingDistanceKm.value = 0.0
+        } else {
+            // Bus is approaching or at the current stop
+            val currentStop = stopsList.getOrNull(currentIndex)
+            if (currentStop != null) {
+                val timeDiff = targetStop.estimatedMinutesFromStart - currentStop.estimatedMinutesFromStart
+                _totalEtaMinutes.value = kotlin.math.max(0, nextEta + timeDiff)
+
+                val distDiff = targetStop.distanceKm - currentStop.distanceKm
+                _remainingDistanceKm.value = kotlin.math.max(0.0, nextDist + distDiff)
+            } else {
+                _totalEtaMinutes.value = nextEta
+                _remainingDistanceKm.value = nextDist
+            }
         }
     }
 
     fun updateCurrentStopIndex(newIndex: Int) {
         if (newIndex in 0 until _stops.value.size) {
             _currentBusStopIndex.value = newIndex
+            recalculateEtaAndDistance()
         }
     }
 

@@ -145,15 +145,77 @@ fun DriverBottomNavigationBar(
 // ==========================================
 // 1. ROUTE SELECTION SCREEN
 // ==========================================
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
-    val availableRoutes = listOf(
-        "D-1 (ISBT - Clement Town Campus)",
-        "D-2 (Clock Tower - Clement Town Campus)",
-        "B-1 (Haldwani - Bhimtal Campus)",
-        "H-1 (Lalkuan - Haldwani Campus)"
-    )
-    var selectedRoute by remember { mutableStateOf<String?>(null) }
+fun RouteSelectionScreen(
+    availableRoutes: List<com.example.livebus.data.TransitRoute>,
+    selectedRoute: com.example.livebus.data.TransitRoute?,
+    onRouteSelected: (com.example.livebus.data.TransitRoute) -> Unit,
+    selectedCityId: String,
+    allCities: List<com.example.livebus.data.TransitCity>,
+    onCitySelected: (String) -> Unit,
+    onNavigateNext: () -> Unit
+) {
+    var showCitySheet by remember { mutableStateOf(false) }
+    val selectedCity = allCities.find { it.id == selectedCityId } ?: allCities.firstOrNull() ?: com.example.livebus.data.TransitCity("DDN", "Dehradun", "DDN Campus", "Dehradun Campus Bus Service", com.example.livebus.ui.tracking.LatLng(30.2721, 78.0084), "Clement Town Campus")
+
+    if (showCitySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCitySheet = false },
+            sheetState = rememberModalBottomSheetState()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "Select Campus Registry",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                allCities.forEach { city ->
+                    val isSelected = city.id == selectedCityId
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onCitySelected(city.id)
+                                showCitySheet = false
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "📍 ${city.name} • ${city.agencyName}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) ForestGreen else MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = city.fullAgencyTitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Active Selection",
+                                tint = ForestGreen,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f))
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -188,14 +250,38 @@ fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // City Selector Card
+        Card(
+            onClick = { showCitySheet = true },
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = ForestGreen)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("ACTIVE CAMPUS REGISTRY", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = ForestGreen)
+                        Text("${selectedCity.name} (${selectedCity.agencyName})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "Change Campus", tint = ForestGreen)
+            }
+        }
+
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(availableRoutes) { route ->
-                val isSelected = selectedRoute == route
+                val isSelected = selectedRoute?.routeId == route.routeId
                 Card(
-                    onClick = { selectedRoute = route },
+                    onClick = { onRouteSelected(route) },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = if (isSelected) ForestGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -231,12 +317,19 @@ fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
                                 )
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = route,
-                                fontSize = 16.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            Column {
+                                Text(
+                                    text = route.displayName,
+                                    fontSize = 16.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "${route.direction} • to ${route.destination}",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         if (isSelected) {
@@ -255,7 +348,7 @@ fun RouteSelectionScreen(onNavigateNext: (String) -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { selectedRoute?.let { onNavigateNext(it) } },
+            onClick = onNavigateNext,
             enabled = selectedRoute != null,
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
