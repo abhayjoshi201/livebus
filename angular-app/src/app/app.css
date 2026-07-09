@@ -53,7 +53,7 @@ header {
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(90deg, #fff, #93c5fd);
+  background: var(--logo-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -78,9 +78,9 @@ header {
 }
 
 .city-select {
-  background: rgba(59, 130, 246, 0.18);
-  border: 1px solid rgba(59, 130, 246, 0.45);
-  color: #fff;
+  background: var(--select-bg);
+  border: 1px solid var(--select-border);
+  color: var(--select-color);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 700;
@@ -92,7 +92,7 @@ header {
 }
 
 .city-select:hover {
-  background: rgba(59, 130, 246, 0.28);
+  background: var(--select-bg-hover);
   box-shadow: 0 0 18px var(--primary-glow);
 }
 
@@ -684,10 +684,5 @@ main {
   transform: translateY(0) scale(0.95);
 }
 
-/* Light Theme logo title override */
-:root.light-theme .logo-title {
-  background: linear-gradient(90deg, #0b2545, #1e3a8a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+
 
