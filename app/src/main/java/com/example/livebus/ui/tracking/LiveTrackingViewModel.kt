@@ -18,6 +18,9 @@ import io.reactivex.schedulers.Schedulers
 
 import com.example.livebus.BuildConfig
 import com.example.livebus.data.TransitRepository
+import com.example.livebus.data.OfflineTransitDao
+import com.example.livebus.data.GovtRoute
+import com.example.livebus.data.RouteStageSegment
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.Job
 
@@ -38,9 +41,38 @@ data class ActiveBus(
 )
 
 @HiltViewModel
+
 class LiveTrackingViewModel @Inject constructor(
-    private val transitRepository: TransitRepository
+    private val transitRepository: TransitRepository,
+    private val offlineTransitDao: OfflineTransitDao
 ) : ViewModel() {
+
+    // --- WIMT Offline Linear Schematic State (Option A / Pillar 1) ---
+    val isWimtLinearMode = MutableStateFlow(false)
+    fun toggleTrackingViewMode() { isWimtLinearMode.value = !isWimtLinearMode.value }
+
+
+    private val _offlineRoute = MutableStateFlow<GovtRoute?>(null)
+    val offlineRoute: StateFlow<GovtRoute?> = _offlineRoute.asStateFlow()
+
+    private val _offlineStages = MutableStateFlow<List<RouteStageSegment>>(emptyList())
+    val offlineStages: StateFlow<List<RouteStageSegment>> = _offlineStages.asStateFlow()
+
+    val offlineDistanceMeters = MutableStateFlow(124800.0) // Sample live bus progress at milestone 124.8 km
+
+    init {
+        viewModelScope.launch {
+            // Load default UK-DDO-01 Route 101 or first available from Room DB
+            offlineTransitDao.getAllRoutes().collect { routes ->
+                _offlineRoute.value = routes.firstOrNull()
+                routes.firstOrNull()?.let { firstRoute ->
+                    offlineTransitDao.getStagesForRoute(firstRoute.routeId).collect { stages ->
+                        _offlineStages.value = stages
+                    }
+                }
+            }
+        }
+    }
 
     private val stompClient: StompClient = Stomp.over(Stomp.ConnectionProvider.OKHTTP, BuildConfig.WEBSOCKET_URL)
     private val compositeDisposable = CompositeDisposable()
@@ -179,6 +211,25 @@ class LiveTrackingViewModel @Inject constructor(
                     _busLocation.value = combinedList.firstOrNull()?.location
                     _eta.value = combinedList.firstOrNull()?.etaMinutes ?: rem1
                     _distance.value = combinedList.firstOrNull()?.distanceKm ?: dist1
+
+                    // --- Option B / Pillar 2 & 4: Zero-Cost Polyline Snapping & WIMT Progress Math ---
+                    val primaryBusLoc = combinedList.firstOrNull()?.location ?: loc1
+                    val snappedDistanceMeters = TransitPhysicsEngine.snapToRoutePolyline(primaryBusLoc, waypoints)
+                    
+                    // If waypoints are present, update offline 1D progress; otherwise simulate along total corridor
+                    if (snappedDistanceMeters > 10.0) {
+                        offlineDistanceMeters.value = snappedDistanceMeters
+                    } else {
+                        // Advance fractional progress along our 275 km Dehradun-Haldwani corridor or 22 km Bhimtal coach route
+                        val maxRouteLen = _offlineRoute.value?.totalDistanceMeters ?: 275000.0
+                        offlineDistanceMeters.value = ((1.0 - ratio1) * maxRouteLen).coerceIn(0.0, maxRouteLen)
+                    }
+
+                    // Compute terrain-aware ETA for upcoming stage (uphill vs downhill profile)
+                    _offlineStages.value.firstOrNull { it.accumulatedDistanceMeters > offlineDistanceMeters.value }?.let { nextStage ->
+                        val offlineEtaMins = TransitPhysicsEngine.calculateETA(offlineDistanceMeters.value, nextStage.accumulatedDistanceMeters, nextStage)
+                        if (offlineEtaMins > 0) _eta.value = offlineEtaMins
+                    }
                 }
             }
         }
@@ -187,6 +238,16 @@ class LiveTrackingViewModel @Inject constructor(
     private fun fetchDirectionsForActiveRoute(route: com.example.livebus.data.TransitRoute) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
+                // Check if we have an offline encoded polyline from Room DB first (Zero-Cost API replacement)
+                val offlineEncoded = _offlineRoute.value?.encodedPolyline
+                if (!offlineEncoded.isNullOrBlank() && offlineEncoded.length > 20) {
+                    val decodedPolyline = TransitPhysicsEngine.decodePolyline(offlineEncoded)
+                    if (decodedPolyline.isNotEmpty()) {
+                        _routeWaypoints.value = decodedPolyline
+                        return@launch
+                    }
+                }
+
                 val apiKey = com.example.livebus.BuildConfig.MAPS_API_KEY
                 if (apiKey.isNotBlank() && !apiKey.contains("PASTE_YOUR")) {
                     val origin = "${route.initialBusLocation.latitude},${route.initialBusLocation.longitude}"
@@ -197,6 +258,7 @@ class LiveTrackingViewModel @Inject constructor(
                     conn.requestMethod = "GET"
                     conn.connectTimeout = 5000
                     conn.readTimeout = 5000
+
                     if (conn.responseCode == 200) {
                         val response = conn.inputStream.bufferedReader().use { it.readText() }
                         val json = JSONObject(response)

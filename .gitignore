@@ -25,3 +25,7 @@ bin/
 kubernetes/livebus-secrets.yaml
 gitlab-variables.env
 gitlab-key.json
+kubectl
+.kotlin/
+*.kotlin/
+

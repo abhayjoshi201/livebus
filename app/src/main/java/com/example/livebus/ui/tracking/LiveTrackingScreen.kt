@@ -29,34 +29,57 @@ fun LiveTrackingScreen(
     val status by viewModel.busStatus.collectAsState()
     val isAlertActive by viewModel.isAlertActive.collectAsState()
 
+    // WIMT Offline Linear Schematic State (Option A / Pillar 1)
+    val isWimtLinearMode by viewModel.isWimtLinearMode.collectAsState()
+    val offlineRoute by viewModel.offlineRoute.collectAsState()
+    val offlineStages by viewModel.offlineStages.collectAsState()
+    val offlineDistanceMeters by viewModel.offlineDistanceMeters.collectAsState()
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Z-Index 0: Google Maps Platform Layer
-        GoogleMapLayer(
-            busLocation = busLocation,
-            userStopLocation = userStopLocation,
-            routeWaypoints = routeWaypoints,
-            locationName = routeDetails.direction,
-            activeBuses = activeBuses,
-            modifier = Modifier.fillMaxSize()
-        )
+        if (isWimtLinearMode) {
+            // Z-Index 0: WIMT Zero-Cost 1D Linear Track Progress UI (Room DB powered)
+            WIMTLinearRouteSchematic(
+                route = offlineRoute,
+                stages = offlineStages,
+                currentDistanceMeters = offlineDistanceMeters,
+                currentSpeedKmh = 48,
+                isOfflineTriangulated = true,
+                activePassengersCount = 14,
+                onSwitchToMapView = { viewModel.toggleTrackingViewMode() },
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            // Z-Index 0: 2D Map Layer (Google / MapLibre)
+            GoogleMapLayer(
+                busLocation = busLocation,
+                userStopLocation = userStopLocation,
+                routeWaypoints = routeWaypoints,
+                locationName = routeDetails.direction,
+                activeBuses = activeBuses,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         // Z-Index 1: Top Navigation Layer
         TopNavigationLayer(
             onBackClick = onBackClick
         )
 
-        // Z-Index 2: Dynamic Bottom Sheet Layer
-        BottomSheetLayer(
-            routeDetails = routeDetails,
-            eta = eta,
-            distance = distance,
-            status = status,
-            isAlertActive = isAlertActive,
-            activeBuses = activeBuses,
-            onAlertClick = { viewModel.toggleAlert() },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        // Z-Index 2: Dynamic Bottom Sheet Layer (Only in 2D Map Mode)
+        if (!isWimtLinearMode) {
+            BottomSheetLayer(
+                routeDetails = routeDetails,
+                eta = eta,
+                distance = distance,
+                status = status,
+                isAlertActive = isAlertActive,
+                activeBuses = activeBuses,
+                onAlertClick = { viewModel.toggleAlert() },
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
+
